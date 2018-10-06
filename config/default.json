@@ -1,0 +1,15 @@
+{
+    "server": {
+        "host": "localhost",
+        "port": "3000"
+    },
+    "mongodb": {
+        "URI": "mongodb://localhost:27017/lighty"
+    },
+    "passport": {
+        "secret": "Jwt$ecret0rKey"
+    },
+    "mail": {
+        "from": "info@localhost.com"
+    }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "lighty",
+  "version": "0.0.1",
+  "description": "lighty RESTful Stateless API boilerplate",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./bin/www",
+    "start:development": "DEBUG=debug:* nodemon ./bin/www",
+    "start:production": "NODE_ENV=production forever -o logs/out.log -e logs/err.log ./bin/www",
+    "start:test": "echo 'Error: no test specified' && exit 1"
+  },
+  "author": "Aboud Zakaria",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
+    "config": "^1.26.2",
+    "console-stamp": "^0.2.5",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.7",
+    "express": "^4.15.4",
+    "mongoose": "^4.11.7",
+    "morgan": "^1.8.2",
+    "nodemailer": "^4.0.1",
+    "passport": "^0.4.0",
+    "passport-jwt": "^3.0.0",
+    "shortid": "^2.2.8"
+  }
+}
