@@ -11,6 +11,10 @@
   },
   "author": "Aboud Zakaria",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aboudzakaria/lighty.git"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "bluebird": "^3.7.2",
