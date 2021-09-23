@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-require('console-stamp')(console, 'ddd mmm dd yyyy HH:MM:ss.l')
 var app = require('../app')
 var http = require('http')
 var config = require('config')
+require('console-stamp')(console, config.get('datetime.format'))
 
 var port = normalizePort(config.get('server.port'))
 app.set('port', port)

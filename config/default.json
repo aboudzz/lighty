@@ -11,5 +11,8 @@
     },
     "mail": {
         "from": "info@localhost.com"
+    },
+    "datetime": {
+        "format": "ddd mmm dd yyyy HH:MM:ss.l"
     }
 }
