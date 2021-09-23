@@ -1,4 +1,6 @@
 var mongoose = require('mongoose')
+var bcrypt = require('bcryptjs')
+var debug = require('debug')('debug:Users')
 
 const roles = ['admin', 'user']
 
@@ -30,3 +32,20 @@ UserSchema.methods.getProfile = function () {
 }
 
 const User = module.exports = mongoose.model('User', UserSchema)
+
+// create admin user if not existed
+User.findOne({ email: 'admin' }).then((any) => {
+    if (!any) {
+        bcrypt.hash('admin', 10).then((hash) => {
+            debug('create admin')
+            const isProduction = process.env.NODE_ENV === 'production';
+            User.create({
+                name: 'admin',
+                email: 'admin',
+                password: isProduction ? undefined : hash,
+                confirmed: 'true',
+                role: 'admin'
+            })    
+        })
+    }
+})
