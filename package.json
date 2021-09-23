@@ -25,6 +25,6 @@
     "nodemailer": "^6.6.4",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
-    "shortid": "^2.2.8"
+    "shortid": "^2.2.16"
   }
 }
