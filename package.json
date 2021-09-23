@@ -16,7 +16,7 @@
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "config": "^3.3.6",
-    "console-stamp": "^0.2.5",
+    "console-stamp": "^3.0.3",
     "cookie-parser": "^1.4.3",
     "ejs": "^2.5.7",
     "express": "^4.15.4",
