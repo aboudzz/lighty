@@ -18,7 +18,7 @@
     "config": "^3.3.6",
     "console-stamp": "^3.0.3",
     "cookie-parser": "^1.4.5",
-    "ejs": "^2.5.7",
+    "ejs": "^3.1.6",
     "express": "^4.15.4",
     "mongoose": "^5.7.13",
     "morgan": "^1.8.2",
