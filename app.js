@@ -26,7 +26,7 @@ var app = express()
 
 // patch console-stamp datetime format to morgan logger
 logger.format('date', () => dateFormat(new Date(), config.get('datetime.format')))
-app.use(logger('[:date] [:method] :url :status :res[content-length] - :remote-addr - :response-time ms'))
+app.use(logger('[:date] [:method]  :url :status :res[content-length] - :remote-addr - :response-time ms'))
 app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
