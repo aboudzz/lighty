@@ -36,6 +36,6 @@ module.exports = {
     },
 
     deleteUser: (req, res, next) => {
-        User.remove({ _id: req.params.id }).then((results) => res.json(results)).catch(next)
+        User.deleteOne({ _id: req.params.id }).then((results) => res.json(results)).catch(next)
     }
 }
