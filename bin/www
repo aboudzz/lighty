@@ -18,10 +18,7 @@ function normalizePort(val) {
 
 var server = http.createServer(app)
 server.listen(port)
-server.on('error', onError)
-server.on('listening', onListening)
-
-function onError(err) {
+server.on('error', (err) => {
     if (err.syscall !== 'listen')
         throw err
     var bind = typeof port === 'string'
@@ -39,12 +36,11 @@ function onError(err) {
         default:
             throw error
     }
-}
-
-function onListening() {
+})
+server.on('listening', () => {
     var addr = server.address();
     var bind = typeof addr === 'string'
         ? 'pipe ' + addr
         : 'port ' + addr.port;
     console.info('Listening on ' + bind);
-}
+})

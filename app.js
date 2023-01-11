@@ -16,8 +16,14 @@ global.Promise = require('bluebird')
 
 mongoose.Promise = global.Promise
 mongoose.connect(config.get('mongodb.URI'))
-mongoose.connection.on('connected', mongoConnected)
-mongoose.connection.on('error', mongoError)
+mongoose.connection.on('connected', () => {
+    console.info('Connected to database ' + config.get('mongodb.URI'))
+})
+mongoose.connection.on('error', (err) => {
+    let dbURI = config.get('mongodb.URI') 
+    console.error(`Database '${dbURI}' connection error: ${err}`)
+    process.exit(1)
+})
 
 passport.initialize()
 passport.use(jwtStrategy)
@@ -35,16 +41,5 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(routes)
 app.use(errors.error404)
 app.use(errors.handler)
-
-
-function mongoConnected() {
-    console.info('Connected to database ' + config.get('mongodb.URI'))
-}
-
-function mongoError(err) {
-    let dbURI = config.get('mongodb.URI') 
-    console.error(`Database '${dbURI}' connection error: ${err}`)
-    process.exit(1)
-}
 
 module.exports = app
