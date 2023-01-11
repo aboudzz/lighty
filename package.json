@@ -4,6 +4,10 @@
   "description": "lighty RESTful Stateless API boilerplate",
   "main": "index.js",
   "scripts": {
+    "mongo:deploy": "docker run -d -p 27017:27017 --name=mongo mongo:latest",
+    "mongo:start": "docker start mongo",
+    "mongo:stop": "docker stop mongo",
+    "mongo:rm": "docker rm -f mongo",
     "start": "node ./bin/www",
     "start:development": "run-script-os",
     "start:development:win32": "set DEBUG=debug:*&& nodemon ./bin/www",
