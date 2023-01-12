@@ -22,7 +22,7 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git://github.com/aboudzakaria/lighty.git"
+    "url": "git://github.com/aboudzz/lighty.git"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
