@@ -1,6 +1,8 @@
-# lighty boilerplate
+# Lighty Boilerplate
 
-## requirements
+Lighty is a lightweight NodeJS boilerplate that provides a typical implementation of a RESTful Stateless Web back-end API with a minimal user management and MongoDB integration.
+
+## Requirements
 
 `npm install nodemon -g`
 
