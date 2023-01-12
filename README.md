@@ -10,6 +10,8 @@
 
 ## run
 
+`npm run mongo:deploy`
+
 `npm run start:development`
 
 `npm run start:production`
