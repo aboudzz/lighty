@@ -45,7 +45,7 @@ User.findOne({ email: 'admin' }).then((any) => {
                 password: isProduction ? undefined : hash,
                 confirmed: 'true',
                 role: 'admin'
-            })    
+            })
         })
     }
 })

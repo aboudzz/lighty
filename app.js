@@ -20,7 +20,7 @@ mongoose.connection.on('connected', () => {
     console.info('Connected to database ' + config.get('mongodb.URI'))
 })
 mongoose.connection.on('error', (err) => {
-    let dbURI = config.get('mongodb.URI') 
+    let dbURI = config.get('mongodb.URI')
     console.error(`Database '${dbURI}' connection error: ${err}`)
     process.exit(1)
 })

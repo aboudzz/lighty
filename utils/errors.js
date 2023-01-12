@@ -14,7 +14,7 @@ const errors = module.exports = {
         code: 'NOT_FOUND',
         message: 'Requested entity not found'
     },
-    
+
     UNAUTHORIZED: {
         status: 403,
         code: 'UNAUTHORIZED',
