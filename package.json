@@ -32,7 +32,7 @@
     "console-stamp": "^3.0.3",
     "cookie-parser": "^1.4.5",
     "ejs": "^3.1.10",
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "mongoose": "^6.12.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.9",
