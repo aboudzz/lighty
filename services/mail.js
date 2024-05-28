@@ -1,54 +1,55 @@
-var ejs = require('ejs')
-var path = require('path')
-var config = require('config')
-var nodemailer = require('nodemailer')
-var debug = require('debug')('debug:mail')
+const ejs = require('ejs');
+const path = require('path');
+const config = require('config');
+const nodemailer = require('nodemailer');
+const debug = require('debug')('debug:mail');
 
-const sender = config.get('mail.from')
+const sender = config.get('mail.from');
 
 const send = (from, to, subject, text, html) => {
-    // let transporter = nodemailer.createTransport({
-    //     service: 'SERVICE',
-    //     auth: { user: 'MAIL', pass: 'PASS' }
-    // })
-    // transporter.sendMail({from, to, subject, text, html})
-    // .then((info) => { debug(info)})
-    // .catch((err) => { debug(err)})
-    // .then(() => { transporter.close()})
-}
+    const transporter = nodemailer.createTransport({
+        service: 'SERVICE',
+        auth: { user: 'MAIL', pass: 'PASS' }
+    });
+    transporter.sendMail({from, to, subject, text, html})
+    .then(info => debug(info))
+    .catch(err => debug(err))
+    .finally(() => transporter.close());
+};
 
-var mailer = module.exports = {
+const mailer = {
 
-    sendConfirmation: (user) => {
-        let subject = 'Confirmation Email'
-        let to = user.email
-        let name = user.name
-        let lookup = user.confirmationInfo.lookup
-        let verify = user.confirmationInfo.verify
-        let URL = user.confirmationInfo.URL
-        let link = `${URL}?l=${lookup}&v=${verify}`
-        debug(link)
-        let textFile = path.join(__dirname, '../resources/emails/confirm_text.ejs')
+    sendConfirmation: user => {
+        const subject = 'Confirmation Email';
+        const to = user.email;
+        const name = user.name;
+        const lookup = user.confirmationInfo.lookup;
+        const verify = user.confirmationInfo.verify;
+        const URL = user.confirmationInfo.URL;
+        const link = `${URL}?l=${lookup}&v=${verify}`;
+        debug(link);
+        const textFile = path.join(__dirname, '../resources/emails/confirm_text.ejs');
         ejs.renderFile(textFile, { name, link }, (err, text) => {
-            if (err) return debug(err)
-            send(sender, to, subject, text, null)
-        })
+            if (err) return debug(err);
+            send(sender, to, subject, text, null);
+        });
     },
 
-    sendResetPassword: (user) => {
-        let subject = 'Reset Password'
-        let to = user.email
-        let name = user.name
-        let lookup = user.resetPasswordInfo.lookup
-        let verify = user.resetPasswordInfo.verify
-        let URL = user.confirmationInfo.URL
-        let link = `http://${URL}?l=${lookup}&v=${verify}`
-        debug(link)
-        let textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs')
+    sendResetPassword: user => {
+        const subject = 'Reset Password';
+        const to = user.email;
+        const name = user.name;
+        const lookup = user.resetPasswordInfo.lookup;
+        const verify = user.resetPasswordInfo.verify;
+        const URL = user.confirmationInfo.URL;
+        const link = `http://${URL}?l=${lookup}&v=${verify}`;
+        debug(link);
+        const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
         ejs.renderFile(textFile, { name, link }, (err, text) => {
-            if (err) return debug(err)
-            send(sender, to, subject, text, null)
-        })
+            if (err) return debug(err);
+            send(sender, to, subject, text, null);
+        });
     }
-}
+};
 
+module.exports = mailer;
