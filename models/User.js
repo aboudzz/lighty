@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
     }
 });
 
-UserSchema.methods.getProfile = function() {
+UserSchema.methods.getProfile = function () {
     const profile = this.toObject();
     delete profile.password;
     delete profile.confirmationInfo;
@@ -34,19 +34,21 @@ UserSchema.methods.getProfile = function() {
 const User = mongoose.model('User', UserSchema);
 module.exports = User;
 
-// create admin user if not existed
-User.findOne({ email: 'admin' }).then(adminUser => {
-    if (!adminUser) {
-        bcrypt.hash('admin', 10).then(hash => {
-            debug('create admin');
-            const isProduction = process.env.NODE_ENV === 'production';
-            User.create({
-                name: 'admin',
-                email: 'admin',
-                password: isProduction ? undefined : hash,
-                confirmed: true,
-                role: 'admin'
+mongoose.connection.on('connected', () => {
+    // create admin user if not existed
+    User.findOne({ email: 'admin' }).then(adminUser => {
+        if (!adminUser) {
+            bcrypt.hash('admin', 10).then(hash => {
+                debug('create admin');
+                const isProduction = process.env.NODE_ENV === 'production';
+                User.create({
+                    name: 'admin',
+                    email: 'admin',
+                    password: isProduction ? undefined : hash,
+                    confirmed: true,
+                    role: 'admin'
+                });
             });
-        });
-    }
+        }
+    });
 });
