@@ -11,10 +11,10 @@ const send = (from, to, subject, text, html) => {
         service: 'SERVICE',
         auth: { user: 'MAIL', pass: 'PASS' }
     });
-    transporter.sendMail({from, to, subject, text, html})
-    .then(info => debug(info))
-    .catch(err => debug(err))
-    .finally(() => transporter.close());
+    transporter.sendMail({ from, to, subject, text, html })
+        .then(info => debug(info))
+        .catch(err => debug(err))
+        .finally(() => transporter.close());
 };
 
 const mailer = {
