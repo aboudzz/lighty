@@ -15,6 +15,7 @@ const jwtStrategy = require('./utils/jwtStrategy');
 global.Promise = require('bluebird');
 
 mongoose.Promise = global.Promise;
+mongoose.set('strictQuery', false);
 mongoose.connect(config.get('mongodb.URI'));
 mongoose.connection.on('connected', () => {
     console.info(`Connected to database ${config.get('mongodb.URI')}`);
