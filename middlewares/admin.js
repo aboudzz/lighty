@@ -1,3 +1,5 @@
+const validator = require('validator');
+
 const User = require('../models/User');
 
 const errors = require('../utils/errors');
