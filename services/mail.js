@@ -41,7 +41,7 @@ const mailer = {
         const name = user.name;
         const lookup = user.resetPasswordInfo.lookup;
         const verify = user.resetPasswordInfo.verify;
-        const URL = user.confirmationInfo.URL;
+        const URL = user.resetPasswordInfo.URL;
         const link = `http://${URL}?l=${lookup}&v=${verify}`;
         debug(link);
         const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
