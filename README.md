@@ -6,9 +6,7 @@ Lighty is a lightweight NodeJS boilerplate that provides a typical implementatio
 
 ## Requirements
 
-`npm install nodemon -g`
-
-`npm install forever -g`
+`npm install nodemon forever -g`
 
 `npm install --save-dev run-script-os`
 

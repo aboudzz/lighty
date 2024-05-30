@@ -1,46 +1,46 @@
 #!/usr/bin/env node
-var app = require('../app')
-var http = require('http')
-var config = require('config')
-require('console-stamp')(console, config.get('datetime.format'))
 
-var port = normalizePort(config.get('server.port'))
-app.set('port', port)
+const app = require('../app');
+const http = require('http');
+const config = require('config');
+require('console-stamp')(console, config.get('datetime.format'));
+
+const port = normalizePort(config.get('server.port'));
+app.set('port', port);
 
 function normalizePort(val) {
-    var port = parseInt(val, 10)
-    if (isNaN(port))
-        return val
-    if (port >= 0)
-        return port
-    return false
+    const parsedPort = parseInt(val, 10);
+    if (isNaN(parsedPort)) {
+        return val;
+    }
+    if (parsedPort >= 0) {
+        return parsedPort;
+    }
+    return false;
 }
 
-var server = http.createServer(app)
-server.listen(port)
+const server = http.createServer(app);
+server.listen(port);
 server.on('error', (err) => {
-    if (err.syscall !== 'listen')
-        throw err
-    var bind = typeof port === 'string'
-        ? 'Pipe ' + port
-        : 'Port ' + port;
+    if (err.syscall !== 'listen') {
+        throw err;
+    }
+    const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
     switch (err.code) {
         case 'EACCES':
-            console.error(bind + ' requires elevated privileges')
-            process.exit(1)
-            break
+            console.error(`${bind} requires elevated privileges`);
+            process.exit(1);
+            break;
         case 'EADDRINUSE':
-            console.error(bind + ' is already in use')
-            process.exit(1)
-            break
+            console.error(`${bind} is already in use`);
+            process.exit(1);
+            break;
         default:
-            throw err
+            throw err;
     }
-})
+});
 server.on('listening', () => {
-    var addr = server.address();
-    var bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
-    console.info('Listening on ' + bind);
-})
+    const addr = server.address();
+    const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
+    console.info(`Listening on ${bind}`);
+});

@@ -1,26 +1,28 @@
-var express = require('express')
-var router = express.Router()
-var passport = require('passport')
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const router = express.Router();
+const passport = require('passport');
 
-var errors = require('../utils/errors')
-var middleware = require('../middlewares/admin')
+const errors = require('../utils/errors');
+const middleware = require('../middlewares/admin');
 
-const jwtAuth = () => {
-  return passport.authenticate('jwt', { session: false });
-};
+const jwtAuth = () => passport.authenticate('jwt', { session: false });
 
 const isAdmin = (req, res, next) => {
-  req.user.role === 'admin' ? next() : next(errors.UNAUTHORIZED)
-}
+  req.user.role === 'admin' ? next() : next(errors.UNAUTHORIZED);
+};
 
-router.use(jwtAuth()).use(isAdmin)
+const limiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 100 });
 
-router.get('/users', middleware.getUsers)
+router.use(jwtAuth(), isAdmin);
+router.use(limiter);
 
-router.get('/users/:id', middleware.getUsers)
+router.route('/users')
+  .get(middleware.getUsers);
 
-router.put('/users/:id', middleware.updateUser)
+router.route('/users/:id')
+  .get(middleware.getUsers)
+  .put(middleware.updateUser)
+  .delete(middleware.deleteUser);
 
-router.delete('/users/:id', middleware.deleteUser)
-
-module.exports = router
+module.exports = router;

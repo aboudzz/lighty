@@ -1,21 +1,24 @@
-var passportJwt = require('passport-jwt')
-var config = require('config')
-var debug = require('debug')('debug:jwt')
+const passportJwt = require('passport-jwt');
+const config = require('config');
+const debug = require('debug')('debug:jwt');
 
-var errors = require('./errors')
-var User = require('../models/User')
+const errors = require('./errors');
+const User = require('../models/User');
 
-var ExtractJwt = passportJwt.ExtractJwt
-var JwtStrategy = passportJwt.Strategy
+const { ExtractJwt, Strategy: JwtStrategy } = passportJwt;
 
-var jwtOptions = {
+const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('jwt'),
-    secretOrKey: config.get("passport.secret")
-}
+    secretOrKey: config.get("passport.secret"),
+};
 
-var jwtStrategy = module.exports = new JwtStrategy(jwtOptions, (payload, next) => {
-    User.findById(payload.sub).then((user) => {
-        if (user) next(null, user)
-        else next(null, false)
-    }).catch(next)
-})
+const jwtStrategy = new JwtStrategy(jwtOptions, async (payload, next) => {
+    try {
+        const user = await User.findById(payload.sub);
+        next(null, user || false);
+    } catch (err) {
+        next(err);
+    }
+});
+
+module.exports = jwtStrategy;

@@ -1,30 +1,38 @@
-var config = require('config')
-var bcrypt = require('bcryptjs')
-var shortId = require('shortid')
-var jwt = require('jsonwebtoken')
+const config = require('config');
+const bcrypt = require('bcryptjs');
+const shortId = require('shortid');
+const jwt = require('jsonwebtoken');
+const validator = require('validator');
 
-var User = require('../models/User')
-var errors = require('../utils/errors')
-var mailService = require('../services/mail')
+const User = require('../models/User');
+const errors = require('../utils/errors');
+const mailService = require('../services/mail');
 
-const host = config.get('server.host')
-const port = config.get('server.port') !== '80' ? ':' + config.get('server.port') : ''
+const host = config.get('server.host');
+const port = config.get('server.port') !== '80' ? ':' + config.get('server.port') : '';
+
+const throwBadRequest = () => { throw errors.BAD_REQUEST; };
+
+const validateEmail = email => validator.isEmail(email) || throwBadRequest();
 
 module.exports = {
-    getUser: (req, res, next) => {
-        User.findById(req.params.id).then((user) => {
-            if (!user) next(errors.NOT_FOUND)
-            res.json(user.getProfile())
-        }).catch(next)
+    getUser: async (req, res, next) => {
+        try {
+            const user = await User.findById(req.params.id);
+            if (!user) next(errors.NOT_FOUND);
+            res.json(user.getProfile());
+        } catch (error) {
+            next(error);
+        }
     },
 
-    register: (req, res, next) => {
-        User.findOne({ email: req.body.email }).then((any) => {
-            if (any) throw errors.EMAIL_ALREADY_REGISTERED
-        }).then(() => {
-            return bcrypt.hash(req.body.password, 10)
-        }).then((hash) => {
-            return User.create({
+    register: async (req, res, next) => {
+        try {
+            validateEmail(req.body.email)
+            const any = await User.findOne({ email: req.body.email });
+            if (any) throw errors.EMAIL_ALREADY_REGISTERED;
+            const hash = await bcrypt.hash(req.body.password, 10);
+            const user = await User.create({
                 name: req.body.name,
                 email: req.body.email,
                 password: hash,
@@ -33,98 +41,95 @@ module.exports = {
                     verify: shortId.generate(),
                     URL: req.body.URL || `http://${host}${port}/users/confirm`
                 }
-            })
-        }).then((user) => {
-            mailService.sendConfirmation(user)
-            res.json(user.getProfile())
-        }).catch(next)
+            });
+            mailService.sendConfirmation(user);
+            res.json(user.getProfile());
+        } catch (error) {
+            next(error);
+        }
     },
 
-    confirm: (req, res, next) => {
-        let lookup = req.query.l
-        let verify = req.query.v
-        User.findOne({ 'confirmationInfo.lookup': lookup })
-            .then((user) => {
-                if (!user || user.confirmationInfo.verify !== verify) throw errors.BAD_REQUEST
-                user.confirmationInfo = undefined
-                user.confirmed = true
-                return user.save()
-            })
-            .then((user) => {
-                res.json(user.getProfile())
-            }).catch(next)
+    confirm: async (req, res, next) => {
+        try {
+            const lookup = validator.escape(req.query.l);
+            const verify = req.query.v;
+            const user = await User.findOne({ 'confirmationInfo.lookup': lookup });
+            if (!user || user.confirmationInfo.verify !== verify) throw errors.BAD_REQUEST;
+            user.confirmationInfo = undefined;
+            user.confirmed = true;
+            await user.save();
+            res.json(user.getProfile());
+        } catch (error) {
+            next(error);
+        }
     },
 
-    authenticate: (req, res, next) => {
-        let foundUser
-        User.findOne({ email: req.body.email })
-            .then((user) => {
-                foundUser = user
-                if (!user) throw errors.EMAIL_NOT_REGISTERED
-                return bcrypt.compare(req.body.password || "", user.password)
-            })
-            .then((match) => {
-                if (!match) throw errors.INCORRECT_PASSWORD
-                let payload = { sub: foundUser._id }
-                let token = jwt.sign(payload, config.get('passport.secret'))
-                let profile = foundUser.getProfile()
-                profile.token = token
-                res.json(profile)
-            }).catch(next)
+    authenticate: async (req, res, next) => {
+        try {
+            if (req.body.email != 'admin') {
+                validateEmail(req.body.email)
+            }
+            const user = await User.findOne({ email: req.body.email });
+            if (!user) throw errors.EMAIL_NOT_REGISTERED;
+            const match = await bcrypt.compare(req.body.password || "", user.password);
+            if (!match) throw errors.INCORRECT_PASSWORD;
+            const payload = { sub: user._id };
+            const token = jwt.sign(payload, config.get('passport.secret'));
+            const profile = user.getProfile();
+            profile.token = token;
+            res.json(profile);
+        } catch (error) {
+            next(error);
+        }
     },
 
-    forgotPassword: (req, res, next) => {
-        User.findOne({ email: req.body.email })
-            .then((user) => {
-                if (user) {
-                    user.resetPasswordInfo = {
-                        lookup: shortId.generate(),
-                        verify: shortId.generate(),
-                        expire: Date.now() + 3600000, // 1 hour
-                        URL: req.body.URL || `http://${host}${port}/users/resetPassword` // this won't work!
-                    }
-                    mailService.sendResetPassword(user)
-                    return user.save()
-                }
-            })
-            .then((any) => {
-                res.status(200).send()
-            }).catch(next)
+    forgotPassword: async (req, res, next) => {
+        try {
+            validateEmail(req.body.email)
+            const user = await User.findOne({ email: req.body.email });
+            if (user) {
+                user.resetPasswordInfo = {
+                    lookup: shortId.generate(),
+                    verify: shortId.generate(),
+                    expire: Date.now() + 3600000, // 1 hour
+                    URL: req.body.URL || `http://${host}${port}/users/resetPassword`
+                };
+                mailService.sendResetPassword(user);
+                await user.save();
+            }
+            res.status(200).send();
+        } catch (error) {
+            next(error);
+        }
     },
 
-    resetPassword: (req, res, next) => {
-        let lookup = req.body.lookup;
-        let verify = req.body.verify;
-        let foundUser
-        User.findOne({ 'resetPasswordInfo.lookup': lookup })
-            .then((user) => {
-                foundUser = user
-                if (!user || user.resetPasswordInfo.verify !== verify) throw errors.BAD_REQUEST
-                if (user.resetPasswordInfo.expire < Date.now()) throw errors.LINK_EXPIRED
-                return bcrypt.hash(req.body.password, 10)
-            })
-            .then((hash) => {
-                foundUser.password = hash
-                foundUser.resetPasswordInfo = undefined
-                return foundUser.save()
-            })
-            .then((any) => {
-                res.status(200).send()
-            }).catch(next)
+    resetPassword: async (req, res, next) => {
+        try {
+            const lookup = validator.escape(req.body.lookup);
+            const verify = req.body.verify;
+            const user = await User.findOne({ 'resetPasswordInfo.lookup': lookup });
+            if (!user || user.resetPasswordInfo.verify !== verify) throw errors.BAD_REQUEST;
+            if (user.resetPasswordInfo.expire < Date.now()) throw errors.LINK_EXPIRED;
+            const hash = await bcrypt.hash(req.body.password, 10);
+            user.password = hash;
+            user.resetPasswordInfo = undefined;
+            await user.save();
+            res.status(200).send();
+        } catch (error) {
+            next(error);
+        }
     },
 
-    updatePassword: (req, res, next) => {
-        bcrypt.compare(req.body.oldPassword, req.user.password)
-            .then((match) => {
-                if (!match) throw errors.INCORRECT_PASSWORD
-                return bcrypt.hash(req.body.newPassword, 10)
-            })
-            .then((hash) => {
-                req.user.password = hash
-                return req.user.save()
-            })
-            .then((any) => {
-                res.status(200).send()
-            }).catch(next)
+    updatePassword: async (req, res, next) => {
+        try {
+            const match = await bcrypt.compare(req.body.oldPassword, req.user.password);
+            if (!match) throw errors.INCORRECT_PASSWORD;
+            const hash = await bcrypt.hash(req.body.newPassword, 10);
+            req.user.password = hash;
+            await req.user.save();
+            res.status(200).send();
+        } catch (error) {
+            next(error);
+        }
     }
-}
+};

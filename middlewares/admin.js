@@ -1,41 +1,85 @@
-var User = require('../models/User')
+const User = require('../models/User');
+
+const errors = require('../utils/errors');
+
+const throwBadRequest = () => { throw errors.BAD_REQUEST; };
+
+const escapeRegExp = regex => regex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const validateEmail = email => validator.isEmail(email) || throwBadRequest();
+
+const validateBoolean = bool => validator.isBoolean(bool) || throwBadRequest();
 
 module.exports = {
-    getUsers: (req, res, next) => {
-        if (req.params.id) {
-            User.findById(req.params.id).then((user) => res.json(user.getProfile())).catch(next)
-        }
-        let findQuery = {}
-        if (req.query.search) {
-            let regexp = RegExp(req.query.search, 'i')
-            findQuery.$or = [{ name: regexp }, { email: regexp }]
-        }
-        let sortQuery = {}
-        if (req.query.sort) {
-            sortQuery[req.query.sort] = 1
-        }
-        sortQuery['updatedAt'] = 1
+    getUsers: async (req, res, next) => {
+        try {
+            if (req.params.id) {
+                const user = await User.findById(req.params.id);
+                res.json(user.getProfile());
+            } else {
+                const findQuery = {};
+                if (req.query.search) {
+                    const regexp = new RegExp(escapeRegExp(req.query.search), 'i');
+                    findQuery.$or = [{ name: regexp }, { email: regexp }];
+                }
+                const sortQuery = req.query.sort ? { [req.query.sort]: 1 } : { updatedAt: 1 };
 
-        let dataCursor = User.find(findQuery)
-            .sort(sortQuery)
-            .limit(parseInt(req.query.limit))
-            .skip(parseInt(req.query.skip))
-            .select(['-password', '-confirmationInfo', '-resetPasswordInfo'])
-            .exec()
-        let countCursor = User.find(findQuery).count()
-        Promise.props({
-            data: dataCursor.then((data) => { data.forEach((d) => delete d.password); return data }),
-            count: countCursor.then((count) => { return count })
-        }).then((results) => res.json(results)).catch(next)
+                const dataCursor = User.find(findQuery)
+                    .sort(sortQuery)
+                    .limit(parseInt(req.query.limit))
+                    .skip(parseInt(req.query.skip))
+                    .select(['-password', '-confirmationInfo', '-resetPasswordInfo'])
+                    .exec();
+
+                const countCursor = User.find(findQuery).count();
+
+                const [data, count] = await Promise.all([dataCursor, countCursor]);
+                data.forEach((d) => delete d.password);
+                res.json({ data, count });
+            }
+        } catch (error) {
+            next(error);
+        }
     },
 
-    updateUser: (req, res, next) => {
-        delete req.body.password, req.body.confirmationInfo, req.body.resetPasswordInfo
-        User.findByIdAndUpdate(req.params.id, req.body, { new: true })
-            .then((user) => res.json(user.getProfile())).catch(next)
+    updateUser: async (req, res, next) => {
+        try {
+            const allowedFields = ['name', 'email', 'role', 'confirmed']
+            Object.keys(req.body).forEach(field => allowedFields.includes(field) || throwBadRequest());
+
+            if (req.body.name) {
+                req.body.name = validator.escape(validator.trim(req.body.name));
+            }
+
+            if (req.body.email) {
+                validateEmail(req.body.email);
+            }
+
+            if (req.body.role) {
+                req.body.role = validator.escape(validator.trim(req.body.role));
+            }
+
+            if (req.body.confirmed) {
+                validateBoolean(req.body.confirmed);
+            }
+
+            delete req.body.password;
+            delete req.body.confirmationInfo;
+            delete req.body.resetPasswordInfo;
+
+            const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            res.json(updatedUser.getProfile());
+        } catch (error) {
+            next(error);
+        }
     },
 
-    deleteUser: (req, res, next) => {
-        User.deleteOne({ _id: req.params.id }).then((results) => res.json(results)).catch(next)
-    }
-}
+    deleteUser: async (req, res, next) => {
+        try {
+            const result = await User.deleteOne({ _id: req.params.id });
+            res.json(result);
+        } catch (error) {
+            next(error);
+        }
+    },
+};

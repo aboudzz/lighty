@@ -1,25 +1,28 @@
-var express = require('express')
-var router = express.Router()
-var passport = require('passport')
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const router = express.Router();
+const passport = require('passport');
 
-var middleware = require('../middlewares/users')
+const middleware = require('../middlewares/users');
 
-const jwtAuth = () => {
-  return passport.authenticate('jwt', { session: false });
-};
+const jwtAuth = () => passport.authenticate('jwt', { session: false });
 
-router.post('/register', middleware.register)
+const limiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 100 });
 
-router.get('/confirm', middleware.confirm)
+router.use(limiter)
 
-router.post('/authenticate', middleware.authenticate)
+router.post('/register', middleware.register);
 
-router.post('/forgotpassword', middleware.forgotPassword)
+router.get('/confirm', middleware.confirm);
 
-router.post('/resetpassword', middleware.resetPassword)
+router.post('/authenticate', middleware.authenticate);
 
-router.post('/updatepassword', jwtAuth(), middleware.updatePassword)
+router.post('/forgotpassword', middleware.forgotPassword);
 
-router.get('/:id', middleware.getUser)
+router.post('/resetpassword', middleware.resetPassword);
 
-module.exports = router
+router.post('/updatepassword', jwtAuth(), middleware.updatePassword);
+
+router.get('/:id', middleware.getUser);
+
+module.exports = router;
