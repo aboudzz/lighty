@@ -2,6 +2,7 @@ const config = require('config');
 const bcrypt = require('bcryptjs');
 const shortId = require('shortid');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
 
 const User = require('../models/User');
 const errors = require('../utils/errors');
@@ -9,6 +10,10 @@ const mailService = require('../services/mail');
 
 const host = config.get('server.host');
 const port = config.get('server.port') !== '80' ? ':' + config.get('server.port') : '';
+
+const throwBadRequest = () => { throw errors.BAD_REQUEST; };
+
+const validateEmail = email => validator.isEmail(email) || throwBadRequest();
 
 module.exports = {
     getUser: async (req, res, next) => {
@@ -23,6 +28,7 @@ module.exports = {
 
     register: async (req, res, next) => {
         try {
+            validateEmail(req.body.email)
             const any = await User.findOne({ email: req.body.email });
             if (any) throw errors.EMAIL_ALREADY_REGISTERED;
             const hash = await bcrypt.hash(req.body.password, 10);
@@ -45,7 +51,7 @@ module.exports = {
 
     confirm: async (req, res, next) => {
         try {
-            const lookup = req.query.l;
+            const lookup = validator.escape(req.query.l);
             const verify = req.query.v;
             const user = await User.findOne({ 'confirmationInfo.lookup': lookup });
             if (!user || user.confirmationInfo.verify !== verify) throw errors.BAD_REQUEST;
@@ -60,6 +66,9 @@ module.exports = {
 
     authenticate: async (req, res, next) => {
         try {
+            if (req.body.email != 'admin') {
+                validateEmail(req.body.email)
+            }
             const user = await User.findOne({ email: req.body.email });
             if (!user) throw errors.EMAIL_NOT_REGISTERED;
             const match = await bcrypt.compare(req.body.password || "", user.password);
@@ -76,6 +85,7 @@ module.exports = {
 
     forgotPassword: async (req, res, next) => {
         try {
+            validateEmail(req.body.email)
             const user = await User.findOne({ email: req.body.email });
             if (user) {
                 user.resetPasswordInfo = {
@@ -95,7 +105,7 @@ module.exports = {
 
     resetPassword: async (req, res, next) => {
         try {
-            const lookup = req.body.lookup;
+            const lookup = validator.escape(req.body.lookup);
             const verify = req.body.verify;
             const user = await User.findOne({ 'resetPasswordInfo.lookup': lookup });
             if (!user || user.resetPasswordInfo.verify !== verify) throw errors.BAD_REQUEST;

@@ -33,12 +33,14 @@
     "cookie-parser": "^1.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
     "mongoose": "^6.12.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.9",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
-    "shortid": "^2.2.8"
+    "shortid": "^2.2.8",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "run-script-os": "^1.1.6"

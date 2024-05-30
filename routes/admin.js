@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const passport = require('passport');
 
@@ -11,7 +12,10 @@ const isAdmin = (req, res, next) => {
   req.user.role === 'admin' ? next() : next(errors.UNAUTHORIZED);
 };
 
+const limiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 100 });
+
 router.use(jwtAuth(), isAdmin);
+router.use(limiter);
 
 router.route('/users')
   .get(middleware.getUsers);
