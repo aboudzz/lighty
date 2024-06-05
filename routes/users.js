@@ -9,7 +9,7 @@ const jwtAuth = () => passport.authenticate('jwt', { session: false });
 
 const limiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 100 });
 
-router.use(limiter)
+router.use(limiter);
 
 router.post('/register', middleware.register);
 

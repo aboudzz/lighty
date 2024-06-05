@@ -10,7 +10,7 @@ const escapeRegExp = regex => regex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const validateEmail = email => validator.isEmail(email) || throwBadRequest();
 
-const validateBoolean = bool => validator.isBoolean(bool) || throwBadRequest();
+const validateBoolean = bool => typeof bool == 'boolean' || validator.isBoolean(bool) || throwBadRequest();
 
 module.exports = {
     getUsers: async (req, res, next) => {
