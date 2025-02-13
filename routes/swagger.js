@@ -1,11 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const config = require('config');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
-
-const host = config.get('server.host');
-const port = config.get('server.port') !== '80' ? ':' + config.get('server.port') : '';
 
 // Swagger setup
 const swaggerOptions = {
