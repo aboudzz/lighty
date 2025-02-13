@@ -13,9 +13,9 @@
     "start:development:win32": "set DEBUG=debug:*&& nodemon ./bin/www",
     "start:development:darwin:linux": "DEBUG=debug:* nodemon ./bin/www",
     "start:production": "run-script-os",
-    "start:production:win32": "set NODE_ENV=production&& forever -o logs/out.log -e logs/err.log start ./bin/www",
-    "start:production:darwin:linux": "NODE_ENV=production forever -o logs/out.log -e logs/err.log start ./bin/www",
-    "stop:production": "forever stop ./bin/www",
+    "start:production:win32": "set NODE_ENV=production && pm2 -o logs/out.log -e logs/err.log start ./bin/www",
+    "start:production:darwin:linux": "NODE_ENV=production pm2 -o logs/out.log -e logs/err.log start ./bin/www",
+    "stop:production": "pm2 stop ./bin/www",
     "start:test": "echo 'Error: no test specified' && exit 1"
   },
   "author": "Aboud Zakaria",

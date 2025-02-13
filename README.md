@@ -20,8 +20,14 @@ To get started with Lighty, clone the repository and install the dependencies:
 ```bash
 git clone https://github.com/aboudzz/lighty.git
 cd lighty
-npm install nodemon forever -g
+npm install -g nodemon
 npm install --save-dev run-script-os
+```
+
+To install process manager to run lightly in production
+
+```bash
+npm install -g pm2
 ```
 
 ## Features
