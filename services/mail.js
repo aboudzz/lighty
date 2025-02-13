@@ -43,7 +43,7 @@ const mailer = {
         const verify = user.resetPasswordInfo.verify;
         const URL = user.resetPasswordInfo.URL;
         const link = `http://${URL}?l=${lookup}&v=${verify}`;
-        debug(link);
+        debug('Reset password link generated');
         const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
         ejs.renderFile(textFile, { name, link }, (err, text) => {
             if (err) return debug(err);
