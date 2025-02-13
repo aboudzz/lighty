@@ -1,6 +1,6 @@
-[![CodeQL](https://github.com/aboudzz/lighty/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/aboudzz/lighty/actions/workflows/github-code-scanning/codeql)
-
 # Lighty
+
+[![CodeQL](https://github.com/aboudzz/lighty/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/aboudzz/lighty/actions/workflows/github-code-scanning/codeql)
 
 Lighty is a lightweight, efficient boilerplate for Node.js applications, providing a solid starting point for building your Node.js projects with best practices in mind.
 
@@ -20,9 +20,16 @@ To get started with Lighty, clone the repository and install the dependencies:
 ```bash
 git clone https://github.com/aboudzz/lighty.git
 cd lighty
-npm install nodemon forever -g
+npm install -g nodemon
 npm install --save-dev run-script-os
 ```
+
+To install process manager to run lightly in production
+
+```bash
+npm install -g pm2
+```
+
 ## Features
 
 - **Fast Setup**: Get your Node.js project up and running in no time.
