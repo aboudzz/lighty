@@ -5,6 +5,9 @@ const users = require('./users');
 const admin = require('./admin');
 const swagger = require('./swagger');
 
+
+router.get('/', (req, res, next) => res.send('Welcome to lighty!'));
+
 /**
  * @openapi
  * /ping:

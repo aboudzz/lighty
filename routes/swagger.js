@@ -1,3 +1,4 @@
+const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 const swaggerUi = require('swagger-ui-express');
@@ -14,9 +15,10 @@ const swaggerOptions = {
             description: 'lighty RESTful Stateless API boilerplate documentation',
         },
     },
-    apis: ['./routes/*.js'],
+    apis: ['./swagger/*.yml', './routes/*.js', './models/*.js'],
 }
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
+fs.writeFileSync('./lighty-openapi.yml', JSON.stringify(swaggerDocs));
 
 router.use('/', swaggerUi.serve);
 
