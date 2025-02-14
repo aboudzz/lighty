@@ -1,0 +1,365 @@
+openapi: 3.0.0
+info:
+  title: lighty
+  version: 0.0.1
+  description: lighty RESTful Stateless API boilerplate documentation
+paths:
+  /admin/users:
+    get:
+      summary: Retrieve a list of users
+      tags:
+        - admin
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: A list of users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserProfile'
+                  count:
+                    type: integer
+  /admin/users/{id}:
+    get:
+      summary: Retrieve a user by ID
+      tags:
+        - admin
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The user ID
+      responses:
+        '200':
+          description: A user object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    put:
+      summary: Update a user by ID
+      tags:
+        - admin
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The user ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProperties'
+      responses:
+        '200':
+          description: The updated user object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - admin
+      security:
+        - jwtAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The user ID
+      responses:
+        '200':
+          description: deletion acknowledged.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  acknowledged:
+                    type: boolean
+                  deletedCount:
+                    type: integer
+  /:
+    get:
+      description: welcome to lighty
+      responses:
+        '200':
+          description: show welcome message
+  /ping:
+    get:
+      description: play ping-pong with server
+      responses:
+        '200':
+          description: reply with pong.
+  /users/confirm:
+    get:
+      summary: confirm user email
+      tags:
+        - users
+      parameters:
+        - in: query
+          name: l
+          description: lookup
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: v
+          description: verify
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: user verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: invalid verification
+  /users/updatepassword:
+    post:
+      summary: update password
+      tags:
+        - users
+      security:
+        - jwtAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: password updated
+        '400':
+          description: incorrect old password
+        '401':
+          description: unauthorized
+  /users/{id}:
+    get:
+      summary: get user by id
+      tags:
+        - users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: user found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: user not found
+  /users/register:
+    post:
+      summary: register a new user
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: the name of user
+                email:
+                  type: string
+                  format: email
+                  description: the email address of user
+                password:
+                  type: string
+                  format: password
+                  description: the password of user
+      responses:
+        '200':
+          description: user found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: email is already registered
+  /users/authenticate:
+    post:
+      summary: authenticate user
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: the email address of user
+                password:
+                  type: string
+                  format: password
+                  description: the password of user
+      responses:
+        '200':
+          description: user authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileWithToken'
+        '400':
+          description: email is not registered or incorrect password
+  /users/forgotpassword:
+    post:
+      summary: send reset password email
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: the email address of user
+      responses:
+        '200':
+          description: forgot password request received
+  /users/resetpassword:
+    post:
+      summary: reset password
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lookup:
+                  type: string
+                verify:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                  description: the password of user
+      responses:
+        '200':
+          description: password reset
+        '400':
+          description: invalid verification
+components:
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserProperties:
+      type: object
+      properties:
+        name:
+          type: string
+          description: the name of user
+        email:
+          type: string
+          format: email
+          description: the email address of user
+        role:
+          type: string
+          enum:
+            - admin
+            - user
+          description: the role of user
+        confirmed:
+          type: boolean
+          description: the confirmation status of user
+    UserProfile:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: the unique identifier of user
+        name:
+          type: string
+          description: the name of user
+        email:
+          type: string
+          format: email
+          description: the email address of user
+        role:
+          type: string
+          enum:
+            - admin
+            - user
+          description: the role of user
+        confirmed:
+          type: boolean
+          description: the confirmation status of user
+    UserProfileWithToken:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: the unique identifier of user
+        name:
+          type: string
+          description: the name of user
+        email:
+          type: string
+          format: email
+          description: the email address of user
+        role:
+          type: string
+          enum:
+            - admin
+            - user
+          description: the role of user
+        confirmed:
+          type: boolean
+          description: the confirmation status of user
+        token:
+          type: string
+          description: >-
+            authentication token of user for API access, only available when
+            user is being authenticated
+          x-optional: true
+tags: []

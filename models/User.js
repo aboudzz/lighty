@@ -4,6 +4,35 @@ const debug = require('debug')('debug:Users');
 
 const roles = ['admin', 'user'];
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     UserProperties:
+ *       type: object
+ *       properties:
+ *         name:  *userName
+ *         email: *userEmail
+ *         role:  *userRole
+ *         confirmed: *userConfirmed
+ *     UserProfile:
+ *       type: object
+ *       properties:
+ *         _id:   *userId
+ *         name:  *userName
+ *         email: *userEmail
+ *         role:  *userRole
+ *         confirmed: *userConfirmed
+ *     UserProfileWithToken:
+ *       type: object
+ *       properties:
+ *         _id:   *userId
+ *         name:  *userName
+ *         email: *userEmail
+ *         role:  *userRole
+ *         confirmed: *userConfirmed
+ *         token: *userToken
+ */
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true, unique: true },

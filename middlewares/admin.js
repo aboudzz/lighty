@@ -33,7 +33,7 @@ module.exports = {
                     .select(['-password', '-confirmationInfo', '-resetPasswordInfo'])
                     .exec();
 
-                const countCursor = User.find(findQuery).count();
+                const countCursor = User.find(findQuery).countDocuments();
 
                 const [data, count] = await Promise.all([dataCursor, countCursor]);
                 data.forEach((d) => delete d.password);

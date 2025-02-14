@@ -5,6 +5,26 @@ const users = require('./users');
 const admin = require('./admin');
 const swagger = require('./swagger');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+router.use('/users', users);
+router.use('/admin', admin);
+
+if (!isProduction) {
+    router.use('/api-docs', swagger);
+}
+
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     description: welcome to lighty
+ *     responses:
+ *       200:
+ *         description: show welcome message
+ */
+router.get('/', (req, res, next) => res.send('Welcome to lighty!'));
+
 /**
  * @openapi
  * /ping:
@@ -15,11 +35,5 @@ const swagger = require('./swagger');
  *         description: reply with pong.
  */
 router.get('/ping', (req, res, next) => res.send('pong'));
-
-router.use('/users', users);
-
-router.use('/admin', admin);
-
-router.use('/api-docs', swagger);
 
 module.exports = router;
