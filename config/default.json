@@ -14,5 +14,25 @@
     },
     "datetime": {
         "format": "ddd mmm dd yyyy HH:MM:ss.l"
+    },
+    "swagger": {
+        "generate": true,
+        "path": "./lighty-openapi.yml",
+        "options": {
+            "failOnErrors": true,
+            "definition": {
+                "openapi": "3.0.0",
+                "info": {
+                    "title": "lighty",
+                    "version": "0.0.1",
+                    "description": "lighty RESTful Stateless API boilerplate documentation"
+                }
+            },
+            "apis": [
+                "./resources/swagger/*.yml",
+                "./models/*.js",
+                "./routes/*.js"
+            ]
+        }
     }
 }
