@@ -25,7 +25,7 @@
     "url": "git://github.com/aboudzz/lighty.git"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.2",
     "bluebird": "^3.7.2",
     "body-parser": "^1.20.1",
     "config": "^3.3.12",
