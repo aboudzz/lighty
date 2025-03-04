@@ -4,12 +4,14 @@ const config = require('config');
 const nodemailer = require('nodemailer');
 const debug = require('debug')('debug:mail');
 
-const sender = config.get('mail.from');
+const service = config.get('mail.service');
+const sender = config.get('mail.sender');
+const pass = config.get('mail.pass');
 
 const send = (from, to, subject, text, html) => {
     const transporter = nodemailer.createTransport({
-        service: 'SERVICE',
-        auth: { user: 'MAIL', pass: 'PASS' }
+        service: service,
+        auth: { user: sender, pass: pass }
     });
     transporter.sendMail({ from, to, subject, text, html })
         .then(info => debug(info))
