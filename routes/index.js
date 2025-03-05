@@ -37,6 +37,11 @@ router.get('/', (req, res, next) => res.send('Welcome to lighty!'));
  */
 router.get('/ping', (req, res, next) => res.send('pong'));
 
+const faviconLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
+});
+
 /**
  * @openapi
  * /favicon.ico:
@@ -46,11 +51,6 @@ router.get('/ping', (req, res, next) => res.send('pong'));
  *       200:
  *         description: return favicon.ico
  */
-const faviconLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // max 100 requests per windowMs
-});
-
 router.get('/favicon.ico', faviconLimiter, (req, res, next) => {
     res.sendFile(path.join(__dirname, '../public/favicon.ico'));
 });
