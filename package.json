@@ -8,7 +8,7 @@
     "mongo:start": "docker start mongo",
     "mongo:stop": "docker stop mongo",
     "mongo:rm": "docker rm -f mongo",
-    "mailserver:up": "MAILSERVER_FQDN='mail.lighty.com' docker compose -f ./mailserver/compose.yml up -d",
+    "mailserver:up": "MAILSERVER_FQDN=${MAILSERVER_FQDN:-mail.lighty.com} docker compose -f ./mailserver/compose.yml up -d",
     "mailserver:setup": "./mailserver/setup.sh email add info@lighty.com 'Mail$ecret0rKey'",
     "mailserver:down": "docker compose -f ./mailserver/compose.yml down",
     "start": "node ./bin/www",
