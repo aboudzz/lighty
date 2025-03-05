@@ -8,6 +8,9 @@
     "mongo:start": "docker start mongo",
     "mongo:stop": "docker stop mongo",
     "mongo:rm": "docker rm -f mongo",
+    "mailserver:up": "MAILSERVER_FQDN=${MAILSERVER_FQDN:-mail.lighty.com} docker compose -f ./mailserver/compose.yml up -d",
+    "mailserver:setup": "./mailserver/setup.sh email add info@lighty.com 'Mail$ecret0rKey'",
+    "mailserver:down": "docker compose -f ./mailserver/compose.yml down",
     "start": "node ./bin/www",
     "start:development": "run-script-os",
     "start:development:win32": "set DEBUG=debug:*&& nodemon ./bin/www",
@@ -40,11 +43,11 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "shortid": "^2.2.17",
-    "validator": "^13.12.0",
-    "swagger-ui-express": "^5.0.1",
-    "swagger-jsdoc": "^6.2.8"
+    "validator": "^13.12.0"
   },
   "devDependencies": {
-    "run-script-os": "^1.1.6"
+    "run-script-os": "^1.1.6",
+    "swagger-ui-express": "^5.0.1",
+    "swagger-jsdoc": "^6.2.8"
   }
 }

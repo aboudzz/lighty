@@ -38,9 +38,17 @@ npm install -g pm2
 
 ## Usage
 
-After installation, you can deploy the database and then start the development server with:
+After installation, you can deploy the database:
 
 `npm run mongo:deploy`
+
+Start a mailserver and setup info mail user:
+
+`npm run mailserver:up`
+
+`npm run mailserver:setup`
+
+And then start the development server with:
 
 `npm run start:development`
 

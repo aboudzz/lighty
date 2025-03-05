@@ -10,7 +10,9 @@
         "secret": "Jwt$ecret0rKey"
     },
     "mail": {
-        "from": "info@localhost.com"
+        "service": "mail.lighty.com",
+        "sender": "info@lighty.com",
+        "pass": "Mail$ecret0rKey"
     },
     "datetime": {
         "format": "ddd mmm dd yyyy HH:MM:ss.l"

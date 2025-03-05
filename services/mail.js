@@ -4,14 +4,16 @@ const config = require('config');
 const nodemailer = require('nodemailer');
 const debug = require('debug')('debug:mail');
 
-const sender = config.get('mail.from');
+const service = config.get('mail.service');
+const sender = config.get('mail.sender');
+const pass = config.get('mail.pass');
 
-const send = (from, to, subject, text, html) => {
+const send = (to, subject, text, html) => {
     const transporter = nodemailer.createTransport({
-        service: 'SERVICE',
-        auth: { user: 'MAIL', pass: 'PASS' }
+        service: service,
+        auth: { user: sender, pass: pass }
     });
-    transporter.sendMail({ from, to, subject, text, html })
+    transporter.sendMail({ sender, to, subject, text, html })
         .then(info => debug(info))
         .catch(err => debug(err))
         .finally(() => transporter.close());
@@ -31,7 +33,7 @@ const mailer = {
         const textFile = path.join(__dirname, '../resources/emails/confirm_text.ejs');
         ejs.renderFile(textFile, { name, link }, (err, text) => {
             if (err) return debug(err);
-            send(sender, to, subject, text, null);
+            send(to, subject, text, null);
         });
     },
 
@@ -47,7 +49,7 @@ const mailer = {
         const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
         ejs.renderFile(textFile, { name, link }, (err, text) => {
             if (err) return debug(err);
-            send(sender, to, subject, text, null);
+            send(to, subject, text, null);
         });
     }
 };
