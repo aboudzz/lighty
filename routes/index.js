@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 
 const users = require('./users');
 const admin = require('./admin');
@@ -45,7 +46,12 @@ router.get('/ping', (req, res, next) => res.send('pong'));
  *       200:
  *         description: return favicon.ico
  */
-router.get('/favicon.ico', (req, res, next) => {
+const faviconLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
+});
+
+router.get('/favicon.ico', faviconLimiter, (req, res, next) => {
     res.sendFile(path.join(__dirname, '../public/favicon.ico'));
 });
 
