@@ -109,6 +109,12 @@ paths:
       responses:
         '200':
           description: reply with pong.
+  /favicon.ico:
+    get:
+      description: get the favicon
+      responses:
+        '200':
+          description: return favicon.ico
   /users/confirm:
     get:
       summary: confirm user email

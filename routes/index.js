@@ -36,4 +36,17 @@ router.get('/', (req, res, next) => res.send('Welcome to lighty!'));
  */
 router.get('/ping', (req, res, next) => res.send('pong'));
 
+/**
+ * @openapi
+ * /favicon.ico:
+ *   get:
+ *     description: get the favicon
+ *     responses:
+ *       200:
+ *         description: return favicon.ico
+ */
+router.get('/favicon.ico', (req, res, next) => {
+    res.sendFile(path.join(__dirname, '../public/favicon.ico'));
+});
+
 module.exports = router;
