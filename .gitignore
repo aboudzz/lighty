@@ -1,3 +1,7 @@
+/.vscode/*
+/.sonarlint/*
+/.scannerwork/*
 /logs/*
 /node_modules/*
 /mailserver/docker-data/*
+/coverage/*
