@@ -1,6 +1,7 @@
 # Lighty
 
 [![CodeQL](https://github.com/aboudzz/lighty/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/aboudzz/lighty/actions/workflows/github-code-scanning/codeql)
+[![SonarCloud quality gate](https://sonarcloud.io/api/project_badges/measure?project=aboudzz_lighty&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=aboudzz_lighty)
 
 Lighty is a lightweight, efficient boilerplate for Node.js applications, providing a solid starting point for building your Node.js projects with best practices in mind.
 
