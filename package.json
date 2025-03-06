@@ -19,7 +19,12 @@
     "start:production:win32": "set NODE_ENV=production && pm2 -o logs/out.log -e logs/err.log start ./bin/www",
     "start:production:darwin:linux": "NODE_ENV=production pm2 -o logs/out.log -e logs/err.log start ./bin/www",
     "stop:production": "pm2 stop ./bin/www",
-    "start:test": "npx jest"
+    "test": "npx jest --coverage --testResultsProcessor jest-sonar-reporter"
+  },
+  "jestSonar": {
+    "reportPath": "coverage",
+    "reportFile": "sonar-report.xml",
+    "indent": 4
   },
   "author": "Aboud Zakaria",
   "license": "ISC",
@@ -47,7 +52,9 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "jest-sonar-reporter": "^2.0.0",
     "run-script-os": "^1.1.6",
+    "sonar-scanner": "^3.1.0",
     "supertest": "^7.0.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
