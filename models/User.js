@@ -54,6 +54,7 @@ const UserSchema = new mongoose.Schema({
 
 UserSchema.methods.getProfile = function () {
     const profile = this.toObject();
+    profile._id = profile._id.toString();
     delete profile.password;
     delete profile.confirmationInfo;
     delete profile.resetPasswordInfo;
