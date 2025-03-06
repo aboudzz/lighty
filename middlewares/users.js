@@ -13,7 +13,12 @@ const port = config.get('server.port') !== '80' ? ':' + config.get('server.port'
 
 const throwBadRequest = () => { throw errors.BAD_REQUEST; };
 
-const validateEmail = email => validator.isEmail(email) || throwBadRequest();
+const validateEmail = email => {
+    if (!validator.isEmail(email)) {
+        throwBadRequest();
+    }
+    return email;
+}
 
 module.exports = {
     getUser: async (req, res, next) => {
@@ -28,13 +33,14 @@ module.exports = {
 
     register: async (req, res, next) => {
         try {
-            validateEmail(req.body.email)
-            const any = await User.findOne({ email: req.body.email });
+            const name = validator.escape(validator.trim(req.body.name));
+            const email = validateEmail(req.body.email);
+            const any = await User.findOne({ email: email });
             if (any) throw errors.EMAIL_ALREADY_REGISTERED;
             const hash = await bcrypt.hash(req.body.password, 10);
             const user = await User.create({
-                name: req.body.name,
-                email: req.body.email,
+                name: name,
+                email: email,
                 password: hash,
                 confirmationInfo: {
                     lookup: shortId.generate(),
@@ -66,10 +72,11 @@ module.exports = {
 
     authenticate: async (req, res, next) => {
         try {
+            let email = req.body.email;
             if (req.body.email != 'admin') {
-                validateEmail(req.body.email)
+                email = validateEmail(req.body.email);
             }
-            const user = await User.findOne({ email: req.body.email });
+            const user = await User.findOne({ email: email });
             if (!user) throw errors.EMAIL_NOT_REGISTERED;
             const match = await bcrypt.compare(req.body.password || "", user.password);
             if (!match) throw errors.INCORRECT_PASSWORD;
@@ -85,8 +92,8 @@ module.exports = {
 
     forgotPassword: async (req, res, next) => {
         try {
-            validateEmail(req.body.email)
-            const user = await User.findOne({ email: req.body.email });
+            const email = validateEmail(req.body.email);
+            const user = await User.findOne({ email: email });
             if (user) {
                 user.resetPasswordInfo = {
                     lookup: shortId.generate(),
