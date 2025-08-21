@@ -23,7 +23,6 @@ const errors = {
 
     handler: (err, req, res, next) => {
         debug(err);
-        console.error(err.code || "INTERNAL_SERVER_ERROR", ":", err.message);
         res.status(err.status || 500).json({
             code: err.code || "INTERNAL_SERVER_ERROR",
             message: process.env.NODE_ENV !== 'production' ? err.message : undefined
