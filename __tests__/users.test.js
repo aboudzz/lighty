@@ -1,7 +1,25 @@
 const request = require('supertest');
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const User = require('../models/User');
+
+// Set test environment before importing app
+process.env.NODE_ENV = 'test';
+
+// Mock mongoose connection
+jest.mock('mongoose', () => {
+    const actualMongoose = jest.requireActual('mongoose');
+    return {
+        ...actualMongoose,
+        connect: jest.fn().mockResolvedValue({}),
+        connection: {
+            on: jest.fn(),
+            readyState: 1,
+            close: jest.fn().mockResolvedValue({})
+        }
+    };
+});
 
 jest.mock('passport');
 jest.mock('../models/User', () => {
@@ -228,4 +246,12 @@ describe('POST /users/resetpassword', () => {
         expect(bcrypt.compareSync('password', userJohnDoe.password)).toBeTruthy();
         expect(userJohnDoe.resetPasswordInfo.lookup).toEqual("lookup");
     });
+});
+
+// Clean up after all tests
+afterAll(async () => {
+    // Close any remaining connections
+    if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.close();
+    }
 });

@@ -2,6 +2,23 @@ const request = require('supertest');
 const passport = require('passport');
 const User = require('../models/User');
 
+// Set test environment before importing app
+process.env.NODE_ENV = 'test';
+
+// Mock mongoose connection to avoid database issues
+jest.mock('mongoose', () => {
+    const actualMongoose = jest.requireActual('mongoose');
+    return {
+        ...actualMongoose,
+        connect: jest.fn().mockResolvedValue({}),
+        connection: {
+            on: jest.fn(),
+            readyState: 1,
+            close: jest.fn().mockResolvedValue({})
+        }
+    };
+});
+
 jest.mock('passport');
 jest.mock('../models/User', () => {
     const User = jest.requireActual('../models/User');

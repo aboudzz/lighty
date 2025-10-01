@@ -16,14 +16,21 @@ global.Promise = require('bluebird');
 
 mongoose.Promise = global.Promise;
 mongoose.set('strictQuery', false);
-mongoose.connect(config.get('mongodb.URI'));
+
+// Only connect to database if not in test mode or if not already connected
+if (process.env.NODE_ENV !== 'test' || mongoose.connection.readyState === 0) {
+    mongoose.connect(config.get('mongodb.URI'));
+}
+
 mongoose.connection.on('connected', () => {
     console.info(`Connected to database ${config.get('mongodb.URI')}`);
 });
 mongoose.connection.on('error', (err) => {
     const dbURI = config.get('mongodb.URI');
     console.error(`Database '${dbURI}' connection error: ${err}`);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'test') {
+        process.exit(1);
+    }
 });
 
 passport.initialize();
