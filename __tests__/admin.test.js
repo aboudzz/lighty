@@ -81,6 +81,12 @@ describe('PUT /admin/users/:id', () => {
         expect(res.body).toEqual(userJohnDoe.getProfile());
     });
 
+    it('should return 400 when null request is provided', async () => {
+        const res = await request(app).put('/admin/users/123').send(null);
+
+        expect(res.status).toBe(400);
+    });
+
     it('should return 400 bad request when invalid data is provided', async () => {
         const res = await request(app).put('/admin/users/1234567891')
             .send({ name: 'John Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user', password: 'trying to change it' });
@@ -91,7 +97,7 @@ describe('PUT /admin/users/:id', () => {
     it('should return 404 when user is not found', async () => {
         User.findByIdAndUpdate.mockResolvedValue(null);
 
-        const res = await request(app).put('/admin/users/123');
+        const res = await request(app).put('/admin/users/123').send({});
 
         expect(res.status).toBe(404);
     });

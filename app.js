@@ -5,7 +5,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const dateFormat = require('dateformat');
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 const routes = require('./routes/index');
@@ -16,14 +15,24 @@ global.Promise = require('bluebird');
 
 mongoose.Promise = global.Promise;
 mongoose.set('strictQuery', false);
-mongoose.connect(config.get('mongodb.URI'));
+
+// Only connect to database if not in test mode and if not already connected
+/* istanbul ignore next */
+if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
+    mongoose.connect(config.get('mongodb.URI'));
+}
+
+/* istanbul ignore next */
 mongoose.connection.on('connected', () => {
     console.info(`Connected to database ${config.get('mongodb.URI')}`);
 });
+/* istanbul ignore next */
 mongoose.connection.on('error', (err) => {
     const dbURI = config.get('mongodb.URI');
     console.error(`Database '${dbURI}' connection error: ${err}`);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'test') {
+        process.exit(1);
+    }
 });
 
 passport.initialize();
@@ -35,8 +44,8 @@ const app = express();
 logger.format('date', () => dateFormat(new Date(), config.get('datetime.format')));
 app.use(logger('[:date] [:method]  :url :status :res[content-length] - :remote-addr - :response-time ms'));
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(routes);

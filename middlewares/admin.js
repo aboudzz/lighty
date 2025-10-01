@@ -48,6 +48,11 @@ module.exports = {
     updateUser: async (req, res, next) => {
         try {
             const allowedFields = ['name', 'email', 'role', 'confirmed']
+            
+            if (!req.body || typeof req.body !== 'object') {
+                throwBadRequest();
+            }
+            
             Object.keys(req.body).forEach(field => allowedFields.includes(field) || throwBadRequest());
 
             if (req.body.name) {

@@ -3,5 +3,13 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: "coverage",
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
-  verbose: true
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/jest.setup.js",
+    "/jest.config.js"
+  ],
+  verbose: true,
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  forceExit: true,
+  detectOpenHandles: true
 };
