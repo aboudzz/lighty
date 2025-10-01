@@ -5,7 +5,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const dateFormat = require('dateformat');
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
 const routes = require('./routes/index');
@@ -42,8 +41,8 @@ const app = express();
 logger.format('date', () => dateFormat(new Date(), config.get('datetime.format')));
 app.use(logger('[:date] [:method]  :url :status :res[content-length] - :remote-addr - :response-time ms'));
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(routes);

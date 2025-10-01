@@ -3,6 +3,20 @@ const mongoose = require('mongoose');
 // Set test environment
 process.env.NODE_ENV = 'test';
 
+// Mock mongoose connection to avoid database issues in tests
+jest.mock('mongoose', () => {
+    const actualMongoose = jest.requireActual('mongoose');
+    return {
+        ...actualMongoose,
+        connect: jest.fn().mockResolvedValue({}),
+        connection: {
+            on: jest.fn(),
+            readyState: 1,
+            close: jest.fn().mockResolvedValue({})
+        }
+    };
+});
+
 // Global setup
 beforeAll(async () => {
     // Set a shorter timeout for database operations in tests
