@@ -16,8 +16,8 @@ global.Promise = require('bluebird');
 mongoose.Promise = global.Promise;
 mongoose.set('strictQuery', false);
 
-// Only connect to database if not in test mode or if not already connected
-if (process.env.NODE_ENV !== 'test' || mongoose.connection.readyState === 0) {
+// Only connect to database if not in test mode and if not already connected
+if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
     mongoose.connect(config.get('mongodb.URI'));
 }
 
