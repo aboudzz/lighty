@@ -81,6 +81,12 @@ describe('PUT /admin/users/:id', () => {
         expect(res.body).toEqual(userJohnDoe.getProfile());
     });
 
+    it('should return 400 when null request is provided', async () => {
+        const res = await request(app).put('/admin/users/123').send(null);
+
+        expect(res.status).toBe(400);
+    });
+
     it('should return 400 bad request when invalid data is provided', async () => {
         const res = await request(app).put('/admin/users/1234567891')
             .send({ name: 'John Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user', password: 'trying to change it' });
