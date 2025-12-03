@@ -14,7 +14,7 @@ const port = config.get('server.port') !== '80' ? ':' + config.get('server.port'
 const throwBadRequest = () => { throw errors.BAD_REQUEST; };
 
 const validateEmail = email => {
-    if (!validator.isEmail(email)) {
+    if (typeof email !== 'string' || !validator.isEmail(email)) {
         throwBadRequest();
     }
     return email;
