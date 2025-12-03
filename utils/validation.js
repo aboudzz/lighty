@@ -1,0 +1,84 @@
+const validator = require('validator');
+const errors = require('./errors');
+
+/**
+ * Password validation requirements
+ */
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_REQUIREMENTS = {
+    minLength: PASSWORD_MIN_LENGTH,
+    minLowercase: 1,
+    minUppercase: 1,
+    minNumbers: 1,
+    minSymbols: 0
+};
+
+/**
+ * Validates password strength
+ * @param {string} password - The password to validate
+ * @throws {Error} If password doesn't meet requirements
+ */
+const validatePassword = (password) => {
+    if (!password || typeof password !== 'string') {
+        throw errors.BAD_REQUEST;
+    }
+
+    if (password.length < PASSWORD_MIN_LENGTH) {
+        const error = new Error(`Password must be at least ${PASSWORD_MIN_LENGTH} characters long`);
+        error.status = 400;
+        error.code = 'WEAK_PASSWORD';
+        throw error;
+    }
+
+    if (!validator.isStrongPassword(password, PASSWORD_REQUIREMENTS)) {
+        const error = new Error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+        error.status = 400;
+        error.code = 'WEAK_PASSWORD';
+        throw error;
+    }
+
+    return true;
+};
+
+/**
+ * Validates email format
+ * @param {string} email - The email to validate
+ * @throws {Error} If email is invalid
+ */
+const validateEmail = (email) => {
+    if (!email || typeof email !== 'string') {
+        throw errors.BAD_REQUEST;
+    }
+
+    if (!validator.isEmail(email)) {
+        throw errors.BAD_REQUEST;
+    }
+
+    return email;
+};
+
+/**
+ * Sanitizes and validates user name
+ * @param {string} name - The name to validate
+ * @returns {string} Sanitized name
+ */
+const validateName = (name) => {
+    if (!name || typeof name !== 'string') {
+        throw errors.BAD_REQUEST;
+    }
+
+    const sanitized = validator.trim(name);
+    
+    if (sanitized.length < 1 || sanitized.length > 100) {
+        throw errors.BAD_REQUEST;
+    }
+
+    return validator.escape(sanitized);
+};
+
+module.exports = {
+    validatePassword,
+    validateEmail,
+    validateName,
+    PASSWORD_MIN_LENGTH
+};

@@ -4,9 +4,13 @@ const config = require('config');
 const nodemailer = require('nodemailer');
 const debug = require('debug')('debug:mail');
 
-const service = config.get('mail.service');
-const sender = config.get('mail.sender');
-const pass = config.get('mail.pass');
+const service = process.env.MAIL_SERVICE || config.get('mail.service');
+const sender = process.env.MAIL_SENDER || config.get('mail.sender');
+const pass = process.env.MAIL_PASSWORD;
+
+if (!pass && process.env.NODE_ENV !== 'test') {
+    console.warn('WARNING: MAIL_PASSWORD environment variable not set. Email functionality will be limited.');
+}
 
 const send = (to, subject, text, html) => {
     const transporter = nodemailer.createTransport({
@@ -44,7 +48,7 @@ const mailer = {
         const lookup = user.resetPasswordInfo.lookup;
         const verify = user.resetPasswordInfo.verify;
         const URL = user.resetPasswordInfo.URL;
-        const link = `http://${URL}?l=${lookup}&v=${verify}`;
+        const link = `${URL}?l=${lookup}&v=${verify}`;
         debug('Reset password link generated');
         const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
         ejs.renderFile(textFile, { name, link }, (err, text) => {

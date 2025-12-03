@@ -21,41 +21,89 @@ To get started with Lighty, clone the repository and install the dependencies:
 ```bash
 git clone https://github.com/aboudzz/lighty.git
 cd lighty
-npm install -g nodemon
-npm install --save-dev run-script-os
+npm install
+npm install -g nodemon pm2
 ```
 
-To install process manager to run lightly in production
+### Environment Configuration
+
+**Important:** Before running the application, you must configure your environment variables:
+
+1. Copy the example environment file:
 
 ```bash
-npm install -g pm2
+cp .env.example .env
 ```
+
+1. Edit `.env` and set the following **required** variables:
+
+   ```bash
+   # Generate a secure JWT secret (required)
+   JWT_SECRET=$(openssl rand -base64 32)
+   
+   # Set admin password (required for admin user creation)
+   ADMIN_PASSWORD=YourSecurePassword123
+   
+   # Set mail password (required for email functionality)
+   MAIL_PASSWORD=YourMailPassword
+   ```
+
+1. For production, also set:
+   - `NODE_ENV=production`
+   - `APP_URL`: Your production domain URL (used in email links)
+   - All other production-specific settings
+
+**Security Warning:** Never commit your `.env` file to version control. It's already listed in `.gitignore`.
 
 ## Features
 
 - **Fast Setup**: Get your Node.js project up and running in no time.
+- **Security First**:
+  - Helmet.js for security headers
+  - JWT-based authentication
+  - Password strength validation
+  - Rate limiting protection
+  - Environment-based configuration
+  - Bcrypt password hashing
 - **Best Practices**: Includes configurations for linting, testing, and more.
+- **Email Integration**: User confirmation and password reset via email
+- **Admin Panel**: Role-based access control
 - **Scalability**: Structured to support growth as your project expands.
 
 ## Usage
 
-After installation, you can deploy the database:
+After installation and environment configuration, you can deploy the database:
 
-`npm run mongo:deploy`
+```bash
+npm run mongo:deploy
+```
 
 Start a mailserver and setup info mail user:
 
-`npm run mailserver:up`
+```bash
+npm run mailserver:up
+npm run mailserver:setup
+```
 
-`npm run mailserver:setup`
+Then start the development server with:
 
-And then start the development server with:
+```bash
+npm run start:development
+```
 
-`npm run start:development`
+For production environments, ensure all environment variables are properly set, then run:
 
-For production environments, run:
+```bash
+npm run start:production
+```
 
-`npm run start:production`
+### Testing
+
+Run the test suite:
+
+```bash
+npm test
+```
 
 ## Contributing
 

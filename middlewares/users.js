@@ -7,18 +7,12 @@ const validator = require('validator');
 const User = require('../models/User');
 const errors = require('../utils/errors');
 const mailService = require('../services/mail');
+const { validatePassword, validateEmail, validateName } = require('../utils/validation');
 
-const host = config.get('server.host');
-const port = config.get('server.port') !== '80' ? ':' + config.get('server.port') : '';
+const appUrl = process.env.APP_URL || config.get('app.url');
+const jwtSecret = process.env.JWT_SECRET;
 
 const throwBadRequest = () => { throw errors.BAD_REQUEST; };
-
-const validateEmail = email => {
-    if (typeof email !== 'string' || !validator.isEmail(email)) {
-        throwBadRequest();
-    }
-    return email;
-}
 
 module.exports = {
     getUser: async (req, res, next) => {
@@ -33,10 +27,13 @@ module.exports = {
 
     register: async (req, res, next) => {
         try {
-            const name = validator.escape(validator.trim(req.body.name));
+            const name = validateName(req.body.name);
             const email = validateEmail(req.body.email);
+            validatePassword(req.body.password);
+            
             const any = await User.findOne({ email: email });
             if (any) throw errors.EMAIL_ALREADY_REGISTERED;
+            
             const hash = await bcrypt.hash(req.body.password, 10);
             const user = await User.create({
                 name: name,
@@ -45,7 +42,7 @@ module.exports = {
                 confirmationInfo: {
                     lookup: shortId.generate(),
                     verify: shortId.generate(),
-                    URL: req.body.URL || `http://${host}${port}/users/confirm`
+                    URL: req.body.URL || `${appUrl}/users/confirm`
                 }
             });
             mailService.sendConfirmation(user);
@@ -72,16 +69,13 @@ module.exports = {
 
     authenticate: async (req, res, next) => {
         try {
-            let email = req.body.email;
-            if (req.body.email != 'admin') {
-                email = validateEmail(req.body.email);
-            }
+            const email = validateEmail(req.body.email);
             const user = await User.findOne({ email: email });
             if (!user) throw errors.EMAIL_NOT_REGISTERED;
             const match = await bcrypt.compare(req.body.password || "", user.password);
             if (!match) throw errors.INCORRECT_PASSWORD;
             const payload = { sub: user._id };
-            const token = jwt.sign(payload, config.get('passport.secret'));
+            const token = jwt.sign(payload, jwtSecret);
             const profile = user.getProfile();
             profile.token = token;
             res.json(profile);
@@ -99,7 +93,7 @@ module.exports = {
                     lookup: shortId.generate(),
                     verify: shortId.generate(),
                     expire: Date.now() + 3600000, // 1 hour
-                    URL: req.body.URL || `http://${host}${port}/users/resetPassword`
+                    URL: req.body.URL || `${appUrl}/users/resetPassword`
                 };
                 mailService.sendResetPassword(user);
                 await user.save();
@@ -114,9 +108,12 @@ module.exports = {
         try {
             const lookup = validator.escape(req.body.lookup);
             const verify = req.body.verify;
+            validatePassword(req.body.password);
+            
             const user = await User.findOne({ 'resetPasswordInfo.lookup': lookup });
             if (!user || user.resetPasswordInfo.verify !== verify) throw errors.BAD_REQUEST;
             if (user.resetPasswordInfo.expire < Date.now()) throw errors.LINK_EXPIRED;
+            
             const hash = await bcrypt.hash(req.body.password, 10);
             user.password = hash;
             user.resetPasswordInfo = undefined;
@@ -131,6 +128,9 @@ module.exports = {
         try {
             const match = await bcrypt.compare(req.body.oldPassword, req.user.password);
             if (!match) throw errors.INCORRECT_PASSWORD;
+            
+            validatePassword(req.body.newPassword);
+            
             const hash = await bcrypt.hash(req.body.newPassword, 10);
             req.user.password = hash;
             await req.user.save();

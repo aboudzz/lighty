@@ -6,13 +6,19 @@
     "mongodb": {
         "URI": "mongodb://localhost:27017/lighty"
     },
-    "passport": {
-        "secret": "Jwt$ecret0rKey"
-    },
     "mail": {
         "service": "mail.lighty.com",
-        "sender": "info@lighty.com",
-        "pass": "Mail$ecret0rKey"
+        "sender": "info@lighty.com"
+    },
+    "admin": {
+        "email": "admin@lighty.com"
+    },
+    "rateLimit": {
+        "windowMs": 600000,
+        "max": 100
+    },
+    "app": {
+        "url": "http://localhost:3000"
     },
     "datetime": {
         "format": "ddd mmm dd yyyy HH:MM:ss.l"
