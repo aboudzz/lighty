@@ -56,19 +56,24 @@ module.exports = {
             Object.keys(req.body).forEach(field => allowedFields.includes(field) || throwBadRequest());
 
             if (req.body.name) {
+                if (typeof req.body.name !== "string") throwBadRequest();
                 req.body.name = validator.escape(validator.trim(req.body.name));
             }
 
             if (req.body.email) {
+                if (typeof req.body.email !== "string") throwBadRequest();
                 validateEmail(req.body.email);
             }
 
             if (req.body.role) {
+                if (typeof req.body.role !== "string") throwBadRequest();
                 req.body.role = validator.escape(validator.trim(req.body.role));
             }
 
-            if (req.body.confirmed) {
-                validateBoolean(req.body.confirmed);
+            if ("confirmed" in req.body) {
+                // Accept either boolean type or boolean string
+                if (!(typeof req.body.confirmed === "boolean" || (typeof req.body.confirmed === "string" && validator.isBoolean(req.body.confirmed)))) throwBadRequest();
+                req.body.confirmed = (typeof req.body.confirmed === "boolean") ? req.body.confirmed : validator.toBoolean(req.body.confirmed);
             }
 
             delete req.body.password;
