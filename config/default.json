@@ -4,14 +4,22 @@
         "port": "3000"
     },
     "mongodb": {
-        "URI": "mongodb://localhost:27017/lighty"
+        "uri": "mongodb://localhost:27017/lighty"
     },
     "mail": {
         "service": "mail.lighty.com",
-        "sender": "info@lighty.com"
+        "sender": "info@lighty.com",
+        "sender_password_env": "MAIL_SENDER_PASSWORD"
     },
     "admin": {
-        "email": "admin@lighty.com"
+        "email": "admin@lighty.com",
+        "password_env": "ADMIN_PASSWORD"
+    },
+    "jwt": {
+        "secret_env": "JWT_SECRET"
+    },
+    "cors": {
+        "origins": ["http://localhost:3000", "http://localhost:3001"]
     },
     "rateLimit": {
         "windowMs": 600000,

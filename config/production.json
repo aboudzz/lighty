@@ -3,7 +3,13 @@
         "host": "0.0.0.0",
         "port": "8080"
     },
+    "cors": {
+        "origins": ["https://your-production-domain.com"]
+    },
     "app": {
         "url": "https://your-production-domain.com"
+    },
+    "swagger": {
+        "generate": false
     }
 }

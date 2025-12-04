@@ -67,8 +67,8 @@ module.exports = User;
 mongoose.connection.on('connected', () => {
     // create admin user if not existed
     const config = require('config');
-    const adminEmail = process.env.ADMIN_EMAIL || config.get('admin.email');
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminEmail = config.get('admin.email');
+    const adminPassword = process.env[config.get('admin.password_env')];
     
     User.findOne({ email: adminEmail }).then(adminUser => {
         if (!adminUser) {

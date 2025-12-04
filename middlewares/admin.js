@@ -17,7 +17,7 @@ module.exports = {
         try {
             if (req.params.id) {
                 const user = await User.findById(req.params.id);
-                if (!user) next(errors.NOT_FOUND);
+                if (!user) return next(errors.NOT_FOUND);
                 res.json(user.getProfile());
             } else {
                 const findQuery = {};
@@ -81,7 +81,7 @@ module.exports = {
             delete req.body.resetPasswordInfo;
 
             const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-            if (!updatedUser) next(errors.NOT_FOUND);
+            if (!updatedUser) return next(errors.NOT_FOUND);
             res.json(updatedUser.getProfile());
         } catch (error) {
             next(error);

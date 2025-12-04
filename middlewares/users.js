@@ -1,6 +1,6 @@
 const config = require('config');
 const bcrypt = require('bcryptjs');
-const shortId = require('shortid');
+const { nanoid } = require('nanoid');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 
@@ -9,16 +9,14 @@ const errors = require('../utils/errors');
 const mailService = require('../services/mail');
 const { validatePassword, validateEmail, validateName } = require('../utils/validation');
 
-const appUrl = process.env.APP_URL || config.get('app.url');
-const jwtSecret = process.env.JWT_SECRET;
-
-const throwBadRequest = () => { throw errors.BAD_REQUEST; };
+const appUrl = config.get('app.url');
+const jwtSecret = process.env[config.get('jwt.secret_env')];
 
 module.exports = {
     getUser: async (req, res, next) => {
         try {
             const user = await User.findById(req.params.id);
-            if (!user) next(errors.NOT_FOUND);
+            if (!user) return next(errors.NOT_FOUND);
             res.json(user.getProfile());
         } catch (error) {
             next(error);
@@ -32,7 +30,7 @@ module.exports = {
             validatePassword(req.body.password);
             
             const any = await User.findOne({ email: email });
-            if (any) throw errors.EMAIL_ALREADY_REGISTERED;
+            if (any) return next(errors.EMAIL_ALREADY_REGISTERED);
             
             const hash = await bcrypt.hash(req.body.password, 10);
             const user = await User.create({
@@ -40,8 +38,8 @@ module.exports = {
                 email: email,
                 password: hash,
                 confirmationInfo: {
-                    lookup: shortId.generate(),
-                    verify: shortId.generate(),
+                    lookup: nanoid(),
+                    verify: nanoid(),
                     URL: req.body.URL || `${appUrl}/users/confirm`
                 }
             });
@@ -57,7 +55,7 @@ module.exports = {
             const lookup = validator.escape(req.query.l);
             const verify = req.query.v;
             const user = await User.findOne({ 'confirmationInfo.lookup': lookup });
-            if (!user || user.confirmationInfo.verify !== verify) throw errors.BAD_REQUEST;
+            if (!user || user.confirmationInfo.verify !== verify) return next(errors.BAD_REQUEST);
             user.confirmationInfo = undefined;
             user.confirmed = true;
             await user.save();
@@ -71,9 +69,9 @@ module.exports = {
         try {
             const email = validateEmail(req.body.email);
             const user = await User.findOne({ email: email });
-            if (!user) throw errors.EMAIL_NOT_REGISTERED;
+            if (!user) return next(errors.EMAIL_NOT_REGISTERED);
             const match = await bcrypt.compare(req.body.password || "", user.password);
-            if (!match) throw errors.INCORRECT_PASSWORD;
+            if (!match) return next(errors.INCORRECT_PASSWORD);
             const payload = { sub: user._id };
             const token = jwt.sign(payload, jwtSecret);
             const profile = user.getProfile();
@@ -90,8 +88,8 @@ module.exports = {
             const user = await User.findOne({ email: email });
             if (user) {
                 user.resetPasswordInfo = {
-                    lookup: shortId.generate(),
-                    verify: shortId.generate(),
+                    lookup: nanoid(),
+                    verify: nanoid(),
                     expire: Date.now() + 3600000, // 1 hour
                     URL: req.body.URL || `${appUrl}/users/resetPassword`
                 };
@@ -111,8 +109,8 @@ module.exports = {
             validatePassword(req.body.password);
             
             const user = await User.findOne({ 'resetPasswordInfo.lookup': lookup });
-            if (!user || user.resetPasswordInfo.verify !== verify) throw errors.BAD_REQUEST;
-            if (user.resetPasswordInfo.expire < Date.now()) throw errors.LINK_EXPIRED;
+            if (!user || user.resetPasswordInfo.verify !== verify) return next(errors.BAD_REQUEST);
+            if (user.resetPasswordInfo.expire < Date.now()) return next(errors.LINK_EXPIRED);
             
             const hash = await bcrypt.hash(req.body.password, 10);
             user.password = hash;
@@ -127,7 +125,7 @@ module.exports = {
     updatePassword: async (req, res, next) => {
         try {
             const match = await bcrypt.compare(req.body.oldPassword, req.user.password);
-            if (!match) throw errors.INCORRECT_PASSWORD;
+            if (!match) return next(errors.INCORRECT_PASSWORD);
             
             validatePassword(req.body.newPassword);
             

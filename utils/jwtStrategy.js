@@ -8,7 +8,7 @@ const User = require('../models/User');
 const { ExtractJwt, Strategy: JwtStrategy } = passportJwt;
 
 // JWT Secret must come from environment variable
-const jwtSecret = process.env.JWT_SECRET;
+const jwtSecret = process.env[config.get('jwt.secret_env')];
 
 if (!jwtSecret) {
     console.error('CRITICAL: JWT_SECRET environment variable is required!');
