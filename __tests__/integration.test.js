@@ -16,7 +16,6 @@ const app = require('../app');
 
 describe('Integration Tests - User Workflows', () => {
     let testUser;
-    let authToken;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -127,7 +126,6 @@ describe('Integration Tests - User Workflows', () => {
             expect(response.status).toBe(200);
             expect(response.body.token).toBeDefined();
             expect(response.body.email).toBe('integration@example.com');
-            authToken = response.body.token;
         });
 
         it('should complete forgot password and reset workflow', async () => {

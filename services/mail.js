@@ -1,5 +1,5 @@
 const ejs = require('ejs');
-const path = require('path');
+const path = require('node:path');
 const config = require('config');
 const nodemailer = require('nodemailer');
 const debug = require('debug')('debug:mail');

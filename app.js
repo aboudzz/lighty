@@ -1,5 +1,5 @@
 require('dotenv').config({ quiet: process.env.NODE_ENV === 'test' });
-const path = require('path');
+const path = require('node:path');
 const config = require('config');
 const logger = require('morgan');
 const express = require('express');
@@ -15,9 +15,9 @@ const routes = require('./routes/index');
 const errors = require('./utils/errors');
 const jwtStrategy = require('./utils/jwtStrategy');
 
-global.Promise = require('bluebird');
+globalThis.Promise = require('bluebird');
 
-mongoose.Promise = global.Promise;
+mongoose.Promise = globalThis.Promise;
 mongoose.set('strictQuery', false);
 
 // Validate critical environment variables

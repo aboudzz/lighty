@@ -76,9 +76,35 @@ const validateName = (name) => {
     return validator.escape(sanitized);
 };
 
+/**
+ * Validates and sanitizes role field
+ * @param {string} role - The role to validate
+ * @returns {string} Sanitized role
+ */
+const validateRole = (role) => {
+    if (!role || typeof role !== 'string') {
+        throw errors.BAD_REQUEST;
+    }
+    return validator.escape(validator.trim(role));
+};
+
+/**
+ * Validates and converts confirmed field (boolean or boolean string)
+ * @param {boolean|string} confirmed - The confirmed value to validate
+ * @returns {boolean} Boolean value
+ */
+const validateConfirmed = (confirmed) => {
+    if (!(typeof confirmed === 'boolean' || (typeof confirmed === 'string' && validator.isBoolean(confirmed)))) {
+        throw errors.BAD_REQUEST;
+    }
+    return typeof confirmed === 'boolean' ? confirmed : validator.toBoolean(confirmed);
+};
+
 module.exports = {
     validatePassword,
     validateEmail,
     validateName,
+    validateRole,
+    validateConfirmed,
     PASSWORD_MIN_LENGTH
 };
