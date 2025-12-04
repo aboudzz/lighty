@@ -43,6 +43,7 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
+    "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
     "mongoose": "^9.0.0",
     "morgan": "^1.10.1",
@@ -54,6 +55,7 @@
     "validator": "^13.15.23"
   },
   "devDependencies": {
+    "baseline-browser-mapping": "^2.9.0",
     "jest": "^30.2.0",
     "jest-sonar-reporter": "^2.0.0",
     "run-script-os": "^1.1.6",

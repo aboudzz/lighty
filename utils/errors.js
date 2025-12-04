@@ -25,7 +25,7 @@ const errors = {
         debug(err);
         res.status(err.status || 500).json({
             code: err.code || "INTERNAL_SERVER_ERROR",
-            message: process.env.NODE_ENV !== 'production' ? err.message : undefined
+            message: process.env.NODE_ENV === 'production' ? undefined : err.message
         });
     }
 }
