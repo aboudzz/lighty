@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('node:path');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 
@@ -8,6 +9,15 @@ const swagger = require('./swagger');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// API v1 routes
+const v1Router = express.Router();
+v1Router.use('/users', users);
+v1Router.use('/admin', admin);
+
+// Mount API v1
+router.use('/api/v1', v1Router);
+
+// Legacy routes (for backward compatibility - can be removed in future)
 router.use('/users', users);
 router.use('/admin', admin);
 

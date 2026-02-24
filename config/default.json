@@ -4,15 +4,31 @@
         "port": "3000"
     },
     "mongodb": {
-        "URI": "mongodb://localhost:27017/lighty"
-    },
-    "passport": {
-        "secret": "Jwt$ecret0rKey"
+        "uri": "mongodb://localhost:27017/lighty"
     },
     "mail": {
-        "service": "mail.lighty.com",
+        "service": "localhost",
+        "port": 587,
+        "secure": false,
         "sender": "info@lighty.com",
-        "pass": "Mail$ecret0rKey"
+        "sender_password_env": "MAIL_SENDER_PASSWORD"
+    },
+    "admin": {
+        "email": "admin@lighty.com",
+        "password_env": "ADMIN_PASSWORD"
+    },
+    "jwt": {
+        "secret_env": "JWT_SECRET"
+    },
+    "cors": {
+        "origins": ["http://localhost:3000", "http://localhost:3001"]
+    },
+    "rateLimit": {
+        "windowMs": 600000,
+        "max": 100
+    },
+    "app": {
+        "url": "http://localhost:3000"
     },
     "datetime": {
         "format": "ddd mmm dd yyyy HH:MM:ss.l"

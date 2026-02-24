@@ -1,7 +1,14 @@
 const mongoose = require('mongoose');
+const config = require('config');
 
 // Set test environment
 process.env.NODE_ENV = 'test';
+
+// Set test environment variables (sensitive values only)
+// Read variable names from config to stay consistent
+process.env[config.get('jwt.secret_env')] = 'test-jwt-secret-for-testing-only-min-32-chars';
+process.env[config.get('admin.password_env')] = 'TestAdmin123';
+process.env[config.get('mail.sender_password_env')] = 'test-mail-password';
 
 // Mock mongoose connection to avoid database issues in tests
 jest.mock('mongoose', () => {
@@ -16,6 +23,15 @@ jest.mock('mongoose', () => {
         }
     };
 });
+
+// Mock nodemailer to avoid real SMTP connections in tests
+jest.mock('nodemailer', () => ({
+    createTransport: jest.fn().mockReturnValue({
+        verify: jest.fn((cb) => cb(null, true)),
+        sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }),
+        close: jest.fn().mockResolvedValue(undefined)
+    })
+}));
 
 // Global setup
 beforeAll(async () => {

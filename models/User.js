@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const debug = require('debug')('debug:Users');
+const { validatePassword } = require('../utils/validation');
 
 const roles = ['admin', 'user'];
 
@@ -66,19 +67,37 @@ module.exports = User;
 
 mongoose.connection.on('connected', () => {
     // create admin user if not existed
-    User.findOne({ email: 'admin' }).then(adminUser => {
+    const config = require('config');
+    const adminEmail = config.get('admin.email');
+    const adminPassword = process.env[config.get('admin.password_env')];
+    
+    User.findOne({ email: adminEmail }).then(adminUser => {
         if (!adminUser) {
-            bcrypt.hash('admin', 10).then(hash => {
-                debug('create admin');
-                const isProduction = process.env.NODE_ENV === 'production';
+            if (!adminPassword) {
+                console.warn(`WARNING: ${config.get('admin.password_env')} environment variable not set. Admin user will not be created.`);
+                console.warn('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
+                return;
+            }
+            try {
+                validatePassword(adminPassword);
+            } catch {
+                console.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
+                return;
+            }
+            bcrypt.hash(adminPassword, 10).then(hash => {
+                debug('Creating admin user');
                 User.create({
-                    name: 'admin',
-                    email: 'admin',
-                    password: isProduction ? undefined : hash,
+                    name: 'Admin',
+                    email: adminEmail,
+                    password: hash,
                     confirmed: true,
                     role: 'admin'
+                }).catch(err => {
+                    console.error('Failed to create admin user:', err.message);
                 });
             });
         }
+    }).catch(err => {
+        debug('Error checking for admin user:', err.message);
     });
 });

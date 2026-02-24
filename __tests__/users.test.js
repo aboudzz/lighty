@@ -12,7 +12,8 @@ jest.mock('../models/User', () => {
     return User;
 });
 
-const hash = bcrypt.hashSync('password', 10);
+const validPassword = 'Password123';  // Strong password for testing
+const hash = bcrypt.hashSync(validPassword, 10);
 const userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com', password: hash, confirmed: true });
 userJohnDoe.save = jest.fn();
 
@@ -53,7 +54,7 @@ describe('POST /users/register', () => {
         });
 
         const res = await request(app).post('/users/register')
-            .send({name: 'Jane Smith', email: 'jane@example.com', password: 'password'});
+            .send({name: 'Jane Smith', email: 'jane@example.com', password: 'StrongPass123'});
         
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual(createdUser.getProfile());
@@ -63,7 +64,7 @@ describe('POST /users/register', () => {
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/users/register')
-        .send({name: 'John Doe II', email: 'john@example.com', password: 'password'});
+        .send({name: 'John Doe II', email: 'john@example.com', password: 'StrongPass123'});
     
         expect(res.statusCode).toEqual(400);
     });
@@ -72,7 +73,7 @@ describe('POST /users/register', () => {
         User.findOne.mockResolvedValue(null);
 
         const res = await request(app).post('/users/register')
-        .send({name: 'Jane Smith', email: 'jane[at]example.com', password: 'password'});
+        .send({name: 'Jane Smith', email: 'jane[at]example.com', password: 'StrongPass123'});
 
         expect(res.statusCode).toEqual(400);
     });
@@ -110,7 +111,7 @@ describe('POST /users/authenticate', () => {
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/users/authenticate')
-            .send({email: 'john@example.com', password: 'password'});
+            .send({email: 'john@example.com', password: validPassword});
         
         expect(res.statusCode).toEqual(200);
         expect(res.body.token).toBeTruthy();        
@@ -122,7 +123,7 @@ describe('POST /users/authenticate', () => {
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/users/authenticate')
-            .send({email: 'john@example.com', password: 'BADPASSWORD'});
+            .send({email: 'john@example.com', password: 'WrongPass123'});
         
         expect(res.statusCode).toEqual(400);
     });
@@ -131,7 +132,7 @@ describe('POST /users/authenticate', () => {
         User.findOne.mockResolvedValue(null);
         
         const res = await request(app).post('/users/authenticate')
-            .send({email: 'jane@example.com', password: 'password'});
+            .send({email: 'jane@example.com', password: validPassword});
 
         expect(res.statusCode).toEqual(400);
     });
@@ -169,11 +170,11 @@ describe('POST /users/updatepassword', () => {
         authenticatedUser = userJohnDoe;
         
         const res = await request(app).post('/users/updatepassword')
-            .send({ oldPassword: 'password', newPassword: 'newPassword' });
+            .send({ oldPassword: validPassword, newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(200);
         expect(userJohnDoe.password).not.toEqual(hash);
-        expect(bcrypt.compareSync('newPassword', userJohnDoe.password)).toBeTruthy();
+        expect(bcrypt.compareSync('NewStrongPass123', userJohnDoe.password)).toBeTruthy();
     });
 
     it('should return 400 when incorrect password', async () => {
@@ -181,17 +182,17 @@ describe('POST /users/updatepassword', () => {
         authenticatedUser = userJohnDoe;
 
         const res = await request(app).post('/users/updatepassword')
-            .send({ oldPassword: 'BADPASSWORD', newPassword: 'newPassword' });
+            .send({ oldPassword: 'WrongPass123', newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(400);
-        expect(bcrypt.compareSync('password', userJohnDoe.password)).toBeTruthy();
+        expect(bcrypt.compareSync(validPassword, userJohnDoe.password)).toBeTruthy();
     });
 
     it('should return 401 when user is not authenticated', async () => {
         authenticatedUser = null;
 
         const res = await request(app).post('/users/updatepassword')
-            .send({ oldPassword: 'password', newPassword: 'newPassword' });
+            .send({ oldPassword: validPassword, newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(500);
     });
@@ -206,12 +207,12 @@ describe('POST /users/resetpassword', () => {
         User.findOne.mockResolvedValue(userJohnDoe);
         
         const res = await request(app).post('/users/resetpassword')
-            .send({ lookup: 'lookup', verify: 'verify', password: 'newPassword' });
+            .send({ lookup: 'lookup', verify: 'verify', password: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(200);
         expect(userJohnDoe.password).not.toEqual(hash);
         expect(userJohnDoe.resetPasswordInfo.lookup).not.toBeTruthy();
-        expect(bcrypt.compareSync('newPassword', userJohnDoe.password)).toBeTruthy();
+        expect(bcrypt.compareSync('NewStrongPass123', userJohnDoe.password)).toBeTruthy();
     });
 
     it('should return 400 when bad request', async () => {
@@ -222,10 +223,10 @@ describe('POST /users/resetpassword', () => {
         User.findOne.mockResolvedValue(userJohnDoe);
         
         const res = await request(app).post('/users/resetpassword')
-            .send({ lookup: 'lookup', verify: 'BADVERIFY', password: 'newPassword' });
+            .send({ lookup: 'lookup', verify: 'BADVERIFY', password: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(400);
-        expect(bcrypt.compareSync('password', userJohnDoe.password)).toBeTruthy();
+        expect(bcrypt.compareSync(validPassword, userJohnDoe.password)).toBeTruthy();
         expect(userJohnDoe.resetPasswordInfo.lookup).toEqual("lookup");
     });
 });

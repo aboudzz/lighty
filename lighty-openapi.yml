@@ -25,7 +25,7 @@ paths:
                       $ref: '#/components/schemas/UserProfile'
                   count:
                     type: integer
-  /admin/users/{id}:
+  '/admin/users/{id}':
     get:
       summary: Retrieve a user by ID
       tags:
@@ -167,7 +167,7 @@ paths:
           description: incorrect old password
         '401':
           description: unauthorized
-  /users/{id}:
+  '/users/{id}':
     get:
       summary: get user by id
       tags:
