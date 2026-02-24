@@ -144,12 +144,12 @@ describe('Validation Utils', () => {
         it('should accept and sanitize valid roles', () => {
             expect(validateRole('admin')).toBe('admin');
             expect(validateRole('  user  ')).toBe('user');
-            expect(validateRole('moderator')).toBe('moderator');
         });
 
-        it('should escape special characters in role', () => {
-            expect(validateRole('<script>admin</script>')).toBe('&lt;script&gt;admin&lt;&#x2F;script&gt;');
-            expect(validateRole('role & permission')).toContain('&amp;');
+        it('should throw BAD_REQUEST for invalid roles', () => {
+            expect(() => validateRole('moderator')).toThrow(errors.BAD_REQUEST);
+            expect(() => validateRole('<script>admin</script>')).toThrow(errors.BAD_REQUEST);
+            expect(() => validateRole('role & permission')).toThrow(errors.BAD_REQUEST);
         });
 
         it('should throw BAD_REQUEST for null or undefined role', () => {

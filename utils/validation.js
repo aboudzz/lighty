@@ -81,11 +81,17 @@ const validateName = (name) => {
  * @param {string} role - The role to validate
  * @returns {string} Sanitized role
  */
+const ALLOWED_ROLES = ['admin', 'user'];
+
 const validateRole = (role) => {
     if (!role || typeof role !== 'string') {
         throw errors.BAD_REQUEST;
     }
-    return validator.escape(validator.trim(role));
+    const sanitized = validator.trim(role);
+    if (!ALLOWED_ROLES.includes(sanitized)) {
+        throw errors.BAD_REQUEST;
+    }
+    return sanitized;
 };
 
 /**

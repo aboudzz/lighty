@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const debug = require('debug')('debug:Users');
+const { validatePassword } = require('../utils/validation');
 
 const roles = ['admin', 'user'];
 
@@ -74,6 +75,13 @@ mongoose.connection.on('connected', () => {
         if (!adminUser) {
             if (!adminPassword) {
                 console.warn(`WARNING: ${config.get('admin.password_env')} environment variable not set. Admin user will not be created.`);
+                console.warn('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
+                return;
+            }
+            try {
+                validatePassword(adminPassword);
+            } catch {
+                console.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
                 return;
             }
             bcrypt.hash(adminPassword, 10).then(hash => {

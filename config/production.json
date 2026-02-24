@@ -4,9 +4,11 @@
         "port": "8080"
     },
     "cors": {
+        "_comment_origins": "Replace with your actual production domain before deployment",
         "origins": ["https://your-production-domain.com"]
     },
     "app": {
+        "_comment_url": "Replace with your actual production URL before deployment",
         "url": "https://your-production-domain.com"
     },
     "swagger": {

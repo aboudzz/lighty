@@ -56,8 +56,8 @@ module.exports = {
 
                 const dataCursor = User.find(findQuery)
                     .sort(sortQuery)
-                    .limit(Number.parseInt(req.query.limit))
-                    .skip(Number.parseInt(req.query.skip))
+                    .limit(Math.max(0, Number.parseInt(req.query.limit, 10)) || 0)
+                    .skip(Math.max(0, Number.parseInt(req.query.skip, 10)) || 0)
                     .select(['-password', '-confirmationInfo', '-resetPasswordInfo'])
                     .exec();
 

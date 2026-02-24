@@ -13,7 +13,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     tls: {
-        rejectUnauthorized: false
+        // Disable certificate validation only in non-production environments (e.g., local dev with self-signed certs)
+        rejectUnauthorized: process.env.NODE_ENV === 'production'
     }
 });
 
@@ -46,7 +47,8 @@ const send = (to, subject, text, html) => {
         secure: false,
         auth: { user: sender, pass: pass },
         tls: {
-            rejectUnauthorized: false
+            // Disable certificate validation only in non-production environments (e.g., local dev with self-signed certs)
+            rejectUnauthorized: process.env.NODE_ENV === 'production'
         }
     });
 

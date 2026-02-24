@@ -93,7 +93,11 @@ module.exports = {
                     expire: Date.now() + 3600000, // 1 hour
                     URL: req.body.URL || `${appUrl}/users/resetPassword`
                 };
-                mailService.sendResetPassword(user);
+                try {
+                    await mailService.sendResetPassword(user);
+                } catch (mailError) {
+                    console.error('Failed to send reset password email for', email, mailError);
+                }
                 await user.save();
             }
             res.status(200).send();
