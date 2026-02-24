@@ -24,6 +24,15 @@ jest.mock('mongoose', () => {
     };
 });
 
+// Mock nodemailer to avoid real SMTP connections in tests
+jest.mock('nodemailer', () => ({
+    createTransport: jest.fn().mockReturnValue({
+        verify: jest.fn((cb) => cb(null, true)),
+        sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }),
+        close: jest.fn().mockResolvedValue(undefined)
+    })
+}));
+
 // Global setup
 beforeAll(async () => {
     // Set a shorter timeout for database operations in tests

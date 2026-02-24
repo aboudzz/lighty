@@ -2,7 +2,13 @@ const mailService = require('../services/mail');
 const ejs = require('ejs');
 const nodemailer = require('nodemailer');
 
-jest.mock('nodemailer');
+jest.mock('nodemailer', () => ({
+    createTransport: jest.fn().mockReturnValue({
+        verify: jest.fn((cb) => cb(null, true)),
+        sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }),
+        close: jest.fn().mockResolvedValue(undefined)
+    })
+}));
 jest.mock('ejs');
 
 describe('Mail Service', () => {
@@ -191,6 +197,7 @@ describe('Mail Service', () => {
             
             jest.doMock('nodemailer', () => ({
                 createTransport: jest.fn().mockReturnValue({
+                    verify: jest.fn((cb) => cb(null, true)),
                     sendMail: jest.fn().mockResolvedValue({ messageId: 'test' }),
                     close: jest.fn()
                 })
