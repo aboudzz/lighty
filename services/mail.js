@@ -5,13 +5,15 @@ const nodemailer = require('nodemailer');
 const debug = require('debug')('debug:mail');
 
 const service = config.get('mail.service');
+const port = config.get('mail.port');
+const secure = config.get('mail.secure');
 const sender = config.get('mail.sender');
 
 // verify mail server connection
 const transporter = nodemailer.createTransport({
     host: service,
-    port: 587,
-    secure: false,
+    port: port,
+    secure: secure,
     tls: {
         // Disable certificate validation only in non-production environments (e.g., local dev with self-signed certs)
         rejectUnauthorized: process.env.NODE_ENV === 'production'
@@ -43,8 +45,8 @@ const send = (to, subject, text, html) => {
 
     const transporter = nodemailer.createTransport({
         host: service,
-        port: 587,
-        secure: false,
+        port: port,
+        secure: secure,
         auth: { user: sender, pass: pass },
         tls: {
             // Disable certificate validation only in non-production environments (e.g., local dev with self-signed certs)
