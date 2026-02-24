@@ -8,8 +8,8 @@
     },
     "mail": {
         "service": "localhost",
-        "port": 465,
-        "secure": true,
+        "port": 587,
+        "secure": false,
         "sender": "info@lighty.com",
         "sender_password_env": "MAIL_SENDER_PASSWORD"
     },
