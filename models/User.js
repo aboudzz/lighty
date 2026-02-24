@@ -73,8 +73,7 @@ mongoose.connection.on('connected', () => {
     User.findOne({ email: adminEmail }).then(adminUser => {
         if (!adminUser) {
             if (!adminPassword) {
-                console.warn('WARNING: ADMIN_PASSWORD environment variable not set. Admin user will not be created.');
-                console.warn('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
+                console.warn(`WARNING: ${config.get('admin.password_env')} environment variable not set. Admin user will not be created.`);
                 return;
             }
             bcrypt.hash(adminPassword, 10).then(hash => {

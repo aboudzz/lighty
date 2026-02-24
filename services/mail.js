@@ -6,13 +6,34 @@ const debug = require('debug')('debug:mail');
 
 const service = config.get('mail.service');
 const sender = config.get('mail.sender');
-const pass = process.env[config.get('mail.sender_password_env')];
 
-if (!pass && process.env.NODE_ENV !== 'test') {
-    console.warn('WARNING: MAIL_SENDER_PASSWORD environment variable not set. Email functionality will be limited.');
-}
+// verify mail server connection
+const transporter = nodemailer.createTransport({
+    host: service,
+    port: 587,
+    secure: false,
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('Mail server connection failed:', error.message);
+        debug('Mail server connection error details:', error);
+    } else {
+        if (!sender) {
+            console.warn('WARNING: Mail sender address not configured. Email functionality will be limited.');
+        }
+        if (!process.env[config.get('mail.sender_password_env')] && process.env.NODE_ENV !== 'test') {
+            console.warn(`WARNING: ${config.get('mail.sender_password_env')} environment variable not set. Email functionality will be limited.`);
+        }
+    }
+});
+
 
 const send = (to, subject, text, html) => {
+    const pass = process.env[config.get('mail.sender_password_env')];
     if (!pass) {
         const error = new Error('MAIL_SENDER_PASSWORD not configured. Cannot send email.');
         debug('Email send failed:', error.message);

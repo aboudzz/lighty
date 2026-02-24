@@ -7,7 +7,7 @@
         "uri": "mongodb://localhost:27017/lighty"
     },
     "mail": {
-        "service": "mail.lighty.com",
+        "service": "localhost",
         "sender": "info@lighty.com",
         "sender_password_env": "MAIL_SENDER_PASSWORD"
     },
