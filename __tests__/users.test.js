@@ -119,11 +119,11 @@ describe('GET /users/confirm', () => {
     });
 });
 
-describe('POST /users/authenticate', () => {
+describe('POST /auth/login', () => {
     it('should authenticate the user and get token', async () => {
         User.findOne.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).post('/users/authenticate')
+        const res = await request(app).post('/auth/login')
             .send({email: 'john@example.com', password: validPassword});
         
         expect(res.statusCode).toEqual(200);
@@ -135,7 +135,7 @@ describe('POST /users/authenticate', () => {
     it('should return 401 when incorrect password', async () => {
         User.findOne.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).post('/users/authenticate')
+        const res = await request(app).post('/auth/login')
             .send({email: 'john@example.com', password: 'WrongPass123'});
         
         expect(res.statusCode).toEqual(401);
@@ -144,19 +144,19 @@ describe('POST /users/authenticate', () => {
     it('should return 401 when email not registered', async () => {
         User.findOne.mockResolvedValue(null);
         
-        const res = await request(app).post('/users/authenticate')
+        const res = await request(app).post('/auth/login')
             .send({email: 'jane@example.com', password: validPassword});
 
         expect(res.statusCode).toEqual(401);
     });
 });
 
-describe('POST /users/forgotpassword', () => {
+describe('POST /auth/forgot-password', () => {
     it('should return 200 when email is registered', async () => {
         userJohnDoe.resetPasswordInfo = null;
         User.findOne.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).post('/users/forgotpassword')
+        const res = await request(app).post('/auth/forgot-password')
             .send({ email: 'john@example.com' });
         
         expect(res.statusCode).toEqual(200);
@@ -169,7 +169,7 @@ describe('POST /users/forgotpassword', () => {
         userJohnDoe.resetPasswordInfo = null;
         User.findOne.mockResolvedValue(null);
 
-        const res = await request(app).post('/users/forgotpassword')
+        const res = await request(app).post('/auth/forgot-password')
             .send({ email: 'john@example.com' });
         
         expect(res.statusCode).toEqual(200);
@@ -177,12 +177,12 @@ describe('POST /users/forgotpassword', () => {
     })
 });
 
-describe('POST /users/updatepassword', () => {
+describe('POST /auth/update-password', () => {
     it('should change authenticated user\'s password', async () => {
         userJohnDoe.password = hash;
         authenticatedUser = userJohnDoe;
         
-        const res = await request(app).post('/users/updatepassword')
+        const res = await request(app).post('/auth/update-password')
             .send({ oldPassword: validPassword, newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(200);
@@ -193,7 +193,7 @@ describe('POST /users/updatepassword', () => {
         userJohnDoe.password = hash;
         authenticatedUser = userJohnDoe;
 
-        const res = await request(app).post('/users/updatepassword')
+        const res = await request(app).post('/auth/update-password')
             .send({ oldPassword: 'WrongPass123', newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(400);
@@ -203,14 +203,14 @@ describe('POST /users/updatepassword', () => {
     it('should return 401 when user is not authenticated', async () => {
         authenticatedUser = null;
 
-        const res = await request(app).post('/users/updatepassword')
+        const res = await request(app).post('/auth/update-password')
             .send({ oldPassword: validPassword, newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(401);
     });
 });
 
-describe('POST /users/resetpassword', () => {
+describe('POST /auth/reset-password', () => {
     it('should change unauthenticated user\'s password', async () => {
         const resetPasswordInfo = { lookup: 'lookup', verify: 'verify' };
         userJohnDoe.resetPasswordInfo = resetPasswordInfo;
@@ -218,7 +218,7 @@ describe('POST /users/resetpassword', () => {
         authenticatedUser = null;
         User.findOne.mockResolvedValue(userJohnDoe);
         
-        const res = await request(app).post('/users/resetpassword')
+        const res = await request(app).post('/auth/reset-password')
             .send({ lookup: 'lookup', verify: 'verify', password: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(200);
@@ -233,7 +233,7 @@ describe('POST /users/resetpassword', () => {
         authenticatedUser = null;
         User.findOne.mockResolvedValue(userJohnDoe);
         
-        const res = await request(app).post('/users/resetpassword')
+        const res = await request(app).post('/auth/reset-password')
             .send({ lookup: 'lookup', verify: 'BADVERIFY', password: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(400);
@@ -248,7 +248,7 @@ describe('POST /users/resetpassword', () => {
         authenticatedUser = null;
         User.findOne.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).post('/users/resetpassword')
+        const res = await request(app).post('/auth/reset-password')
             .send({ lookup: 'lookup', verify: 'verify', password: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(410);

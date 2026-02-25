@@ -116,7 +116,7 @@ describe('Integration Tests - User Workflows', () => {
             User.findOne.mockResolvedValue(testUser);
 
             const response = await request(app)
-                .post('/api/v1/users/authenticate')
+                .post('/api/v1/auth/login')
                 .send({
                     email: 'integration@example.com',
                     password: 'TestPassword123'
@@ -132,7 +132,7 @@ describe('Integration Tests - User Workflows', () => {
             User.findOne.mockResolvedValue(testUser);
 
             const forgotResponse = await request(app)
-                .post('/api/v1/users/forgotpassword')
+                .post('/api/v1/auth/forgot-password')
                 .send({ email: 'integration@example.com' });
 
             expect(forgotResponse.status).toBe(200);
@@ -145,7 +145,7 @@ describe('Integration Tests - User Workflows', () => {
             User.findOne.mockResolvedValue(testUser);
 
             const resetResponse = await request(app)
-                .post('/api/v1/users/resetpassword')
+                .post('/api/v1/auth/reset-password')
                 .send({
                     lookup: lookup,
                     verify: verify,
@@ -174,7 +174,7 @@ describe('Integration Tests - User Workflows', () => {
             const token = jwt.sign({ userId: authenticatedUser._id }, process.env.JWT_SECRET || 'test-secret');
 
             const response = await request(app)
-                .post('/api/v1/users/updatepassword')
+                .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
                 .send({
                     oldPassword: 'TestPassword123',
@@ -204,7 +204,7 @@ describe('Integration Tests - User Workflows', () => {
             const token = jwt.sign({ userId: authenticatedUser._id }, process.env.JWT_SECRET || 'test-secret');
 
             const response = await request(app)
-                .post('/api/v1/users/updatepassword')
+                .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
                 .send({
                     oldPassword: 'WrongPassword123',
@@ -300,7 +300,7 @@ describe('Integration Tests - User Workflows', () => {
             );
 
             const response = await request(app)
-                .post('/api/v1/users/updatepassword')
+                .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${expiredToken}`)
                 .send({ oldPassword: 'Old123', newPassword: 'New123' });
 
