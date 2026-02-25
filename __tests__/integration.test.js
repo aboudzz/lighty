@@ -273,15 +273,42 @@ describe('Integration Tests - User Workflows', () => {
         });
     });
 
+    describe('JWT Token Expiry', () => {
+        it('should reject an expired JWT token', async () => {
+            const jwt = require('jsonwebtoken');
+            const expiredToken = jwt.sign(
+                { sub: '507f1f77bcf86cd799439011' },
+                process.env.JWT_SECRET || 'test-secret',
+                { expiresIn: '0s' }
+            );
+
+            const response = await request(app)
+                .post('/api/v1/users/updatepassword')
+                .set('Authorization', `Bearer ${expiredToken}`)
+                .send({ oldPassword: 'Old123', newPassword: 'New123' });
+
+            expect(response.status).toBe(401);
+        });
+    });
+
     describe('Rate Limiting', () => {
         it('should apply rate limiting to requests', async () => {
-            // This test verifies rate limiting is configured
-            // Actual rate limit testing would require multiple requests
             const response = await request(app).get('/');
             
-            // Check for rate limit headers
             expect(response.headers['ratelimit-limit']).toBeDefined();
             expect(response.headers['ratelimit-remaining']).toBeDefined();
+        });
+
+        it('should return 429 when rate limit is exceeded', async () => {
+            const config = require('config');
+            const max = config.get('rateLimit.max');
+            const promises = [];
+            for (let i = 0; i <= max; i++) {
+                promises.push(request(app).get('/ping'));
+            }
+            const responses = await Promise.all(promises);
+            const blocked = responses.filter(r => r.status === 429);
+            expect(blocked.length).toBeGreaterThanOrEqual(1);
         });
     });
 });

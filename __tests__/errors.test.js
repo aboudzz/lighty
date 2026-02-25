@@ -169,5 +169,29 @@ describe('Errors Utility', () => {
                 expect.objectContaining({ code: 'VALIDATION_ERROR' })
             );
         });
+
+        it('should map Mongoose CastError to 400', () => {
+            const error = new Error('Cast to ObjectId failed');
+            error.name = 'CastError';
+
+            errors.handler(error, mockReq, mockRes, mockNext);
+
+            expect(mockRes.status).toHaveBeenCalledWith(400);
+            expect(mockRes.json).toHaveBeenCalledWith(
+                expect.objectContaining({ code: 'BAD_REQUEST' })
+            );
+        });
+
+        it('should map Mongoose ValidationError to 400', () => {
+            const error = new Error('Validation failed');
+            error.name = 'ValidationError';
+
+            errors.handler(error, mockReq, mockRes, mockNext);
+
+            expect(mockRes.status).toHaveBeenCalledWith(400);
+            expect(mockRes.json).toHaveBeenCalledWith(
+                expect.objectContaining({ code: 'BAD_REQUEST' })
+            );
+        });
     });
 });
