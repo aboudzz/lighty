@@ -100,6 +100,10 @@ app.use(limiter);
 app.use(pinoHttp({
     logger,
     autoLogging: process.env.NODE_ENV !== 'test',
+    serializers: {
+        req: () => undefined,
+        res: () => undefined
+    },
     customSuccessMessage(req, res, responseTime) {
         return `[${req.method}]  ${req.url} ${res.statusCode} ${res.getHeader('content-length') || '-'} - ${req.socket.remoteAddress} - ${responseTime} ms`;
     },
