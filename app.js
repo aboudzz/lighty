@@ -1,16 +1,16 @@
 require('dotenv').config({ quiet: process.env.NODE_ENV === 'test' });
 const path = require('node:path');
 const config = require('config');
-const logger = require('morgan');
+const pinoHttp = require('pino-http');
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const dateFormat = require('dateformat');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 
+const logger = require('./utils/logger');
 const routes = require('./routes/index');
 const errors = require('./utils/errors');
 const jwtStrategy = require('./utils/jwtStrategy');
@@ -36,12 +36,12 @@ if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
 
 /* istanbul ignore next */
 mongoose.connection.on('connected', () => {
-    console.info(`Connected to database`);
+    logger.info('Connected to database');
     initAdmin();
 });
 /* istanbul ignore next */
 mongoose.connection.on('error', (err) => {
-    console.error(`Database connection error: ${err}`);
+    logger.error({ err }, 'Database connection error');
     if (process.env.NODE_ENV !== 'test') {
         process.exit(1);
     }
@@ -97,9 +97,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// patch console-stamp datetime format to morgan logger
-logger.format('date', () => dateFormat(new Date(), config.get('datetime.format')));
-app.use(logger('[:date] [:method]  :url :status :res[content-length] - :remote-addr - :response-time ms'));
+app.use(pinoHttp({ logger, autoLogging: process.env.NODE_ENV !== 'test' }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

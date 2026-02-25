@@ -1,5 +1,5 @@
 const config = require('config');
-const debug = require('debug')('debug:initAdmin');
+const logger = require('./logger').child({ module: 'initAdmin' });
 const { validatePassword } = require('./validation');
 const User = require('../models/User');
 
@@ -20,7 +20,7 @@ const initAdmin = () => {
                 console.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
                 return;
             }
-            debug('Creating admin user');
+            logger.debug('Creating admin user');
             User.create({
                 name: 'Admin',
                 email: adminEmail,
@@ -32,7 +32,7 @@ const initAdmin = () => {
             });
         }
     }).catch(err => {
-        debug('Error checking for admin user:', err.message);
+        logger.debug('Error checking for admin user: %s', err.message);
     });
 };
 

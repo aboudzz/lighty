@@ -1,5 +1,5 @@
 const createError = require('http-errors');
-const debug = require('debug')('debug:errors');
+const logger = require('./logger').child({ module: 'errors' });
 
 const errorDefs = {
     BAD_REQUEST:              [400, 'Bad request'],
@@ -19,7 +19,7 @@ const errors = {
     },
 
     handler: (err, req, res, next) => {
-        debug(err);
+        logger.debug({ err }, 'Request error');
 
         // Map Mongoose errors to 400
         if (err.name === 'CastError' || err.name === 'ValidationError') {

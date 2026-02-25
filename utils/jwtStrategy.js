@@ -1,6 +1,5 @@
 const passportJwt = require('passport-jwt');
 const config = require('config');
-const debug = require('debug')('debug:jwt');
 
 const errors = require('./errors');
 const User = require('../models/User');

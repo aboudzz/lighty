@@ -2,7 +2,7 @@ const ejs = require('ejs');
 const path = require('node:path');
 const config = require('config');
 const nodemailer = require('nodemailer');
-const debug = require('debug')('debug:mail');
+const logger = require('../utils/logger').child({ module: 'mail' });
 
 const service = config.get('mail.service');
 const port = config.get('mail.port');
@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport({
 transporter.verify((error, success) => {
     if (error) {
         console.error('Mail server connection failed:', error.message);
-        debug('Mail server connection error details:', error);
+        logger.debug({ error }, 'Mail server connection error details');
     } else {
         if (!sender) {
             console.warn('WARNING: Mail sender address not configured. Email functionality will be limited.');
@@ -58,18 +58,18 @@ const send = (to, subject, text, html) => {
     try {
         transport = getAuthTransporter();
     } catch (err) {
-        debug('Email send failed:', err.message);
+        logger.debug('Email send failed: %s', err.message);
         return Promise.reject(err);
     }
 
     return transport.sendMail({ from: sender, to, subject, text, html })
         .then(info => {
-            debug('Email sent successfully:', info.messageId);
+            logger.debug('Email sent successfully: %s', info.messageId);
             return info;
         })
         .catch(err => {
             console.error('Failed to send email:', err.message);
-            debug('Email error details:', err);
+            logger.debug({ err }, 'Email error details');
             throw err;
         });
 };
@@ -84,7 +84,7 @@ const mailer = {
         const verify = user.confirmationInfo.verify;
         const URL = user.confirmationInfo.URL;
         const link = `${URL}?l=${lookup}&v=${verify}`;
-        debug('Confirmation link generated for:', to);
+        logger.debug('Confirmation link generated for: %s', to);
         const textFile = path.join(__dirname, '../resources/emails/confirm_text.ejs');
         
         return ejs.renderFile(textFile, { name, link })
@@ -103,7 +103,7 @@ const mailer = {
         const verify = user.resetPasswordInfo.verify;
         const URL = user.resetPasswordInfo.URL;
         const link = `${URL}?l=${lookup}&v=${verify}`;
-        debug('Reset password link generated for:', to);
+        logger.debug('Reset password link generated for: %s', to);
         const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
         
         return ejs.renderFile(textFile, { name, link })
