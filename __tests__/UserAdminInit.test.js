@@ -15,19 +15,13 @@ const initAdmin = require('../utils/initAdmin');
 
 describe('Admin Initialization', () => {
     let originalEnv;
-    let consoleWarnSpy;
-    let consoleErrorSpy;
 
     beforeAll(() => {
         originalEnv = process.env.ADMIN_PASSWORD;
-        consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        consoleWarnSpy.mockClear();
-        consoleErrorSpy.mockClear();
     });
 
     afterAll(() => {
@@ -36,8 +30,6 @@ describe('Admin Initialization', () => {
         } else {
             delete process.env.ADMIN_PASSWORD;
         }
-        consoleWarnSpy.mockRestore();
-        consoleErrorSpy.mockRestore();
     });
 
     describe('Admin user creation on database connection', () => {
@@ -82,7 +74,7 @@ describe('Admin Initialization', () => {
             expect(User.create).not.toHaveBeenCalled();
         });
 
-        it('should warn when admin password is not set', async () => {
+        it('should not create admin user when admin password is not set', async () => {
             const adminEmail = config.get('admin.email');
             delete process.env.ADMIN_PASSWORD;
             
@@ -92,8 +84,6 @@ describe('Admin Initialization', () => {
             await new Promise(resolve => setImmediate(resolve));
 
             expect(User.findOne).toHaveBeenCalledWith({ email: adminEmail });
-            expect(consoleWarnSpy).toHaveBeenCalledWith('WARNING: ADMIN_PASSWORD environment variable not set. Admin user will not be created.');
-            expect(consoleWarnSpy).toHaveBeenCalledWith('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
             expect(User.create).not.toHaveBeenCalled();
         });
 
@@ -107,7 +97,6 @@ describe('Admin Initialization', () => {
             await new Promise(resolve => setImmediate(resolve));
 
             expect(User.create).toHaveBeenCalled();
-            expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to create admin user:', 'Database error');
         });
 
         it('should handle errors when finding admin user', async () => {
@@ -143,7 +132,6 @@ describe('Admin Initialization', () => {
             await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(consoleErrorSpy).toHaveBeenCalledWith('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
             expect(User.create).not.toHaveBeenCalled();
         });
     });

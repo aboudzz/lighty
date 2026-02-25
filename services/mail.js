@@ -22,14 +22,13 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify((error, success) => {
     if (error) {
-        console.error('Mail server connection failed:', error.message);
-        logger.debug({ error }, 'Mail server connection error details');
+        logger.error({ error }, 'Mail server connection failed');
     } else {
         if (!sender) {
-            console.warn('WARNING: Mail sender address not configured. Email functionality will be limited.');
+            logger.warn('Mail sender address not configured. Email functionality will be limited.');
         }
         if (!process.env[config.get('mail.sender_password_env')] && process.env.NODE_ENV !== 'test') {
-            console.warn(`WARNING: ${config.get('mail.sender_password_env')} environment variable not set. Email functionality will be limited.`);
+            logger.warn('%s environment variable not set. Email functionality will be limited.', config.get('mail.sender_password_env'));
         }
     }
 });
@@ -68,8 +67,7 @@ const send = (to, subject, text, html) => {
             return info;
         })
         .catch(err => {
-            console.error('Failed to send email:', err.message);
-            logger.debug({ err }, 'Email error details');
+            logger.error({ err }, 'Failed to send email');
             throw err;
         });
 };
@@ -90,7 +88,7 @@ const mailer = {
         return ejs.renderFile(textFile, { name, link })
             .then(text => send(to, subject, text, null))
             .catch(err => {
-                console.error('Failed to render or send confirmation email:', err.message);
+                logger.error({ err }, 'Failed to render or send confirmation email');
                 throw err;
             });
     },
@@ -109,7 +107,7 @@ const mailer = {
         return ejs.renderFile(textFile, { name, link })
             .then(text => send(to, subject, text, null))
             .catch(err => {
-                console.error('Failed to render or send reset password email:', err.message);
+                logger.error({ err }, 'Failed to render or send reset password email');
                 throw err;
             });
     }

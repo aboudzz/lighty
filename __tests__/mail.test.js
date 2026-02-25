@@ -17,11 +17,9 @@ jest.mock('ejs');
 describe('Mail Service', () => {
     let mockTransporter;
     let mockSendMail;
-    let consoleErrorSpy;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         // Use the shared mock transporter instance
         mockTransporter = nodemailer._mockTransporter;
@@ -35,11 +33,6 @@ describe('Mail Service', () => {
             }
             return Promise.resolve(`Email content for ${data.name}`);
         });
-    });
-
-    afterEach(() => {
-        // Restore console.error
-        consoleErrorSpy.mockRestore();
     });
 
     describe('sendConfirmation', () => {
@@ -97,12 +90,6 @@ describe('Mail Service', () => {
             };
 
             await expect(mailService.sendConfirmation(user)).rejects.toThrow('Template error');
-            
-            // Verify error was logged
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Failed to render or send confirmation email:',
-                'Template error'
-            );
         });
     });
 
@@ -161,13 +148,6 @@ describe('Mail Service', () => {
             };
 
             await expect(mailService.sendResetPassword(user)).rejects.toThrow('SMTP error');
-            
-            // Verify errors were logged
-            expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to send email:', 'SMTP error');
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Failed to render or send reset password email:',
-                'SMTP error'
-            );
         });
     });
 
@@ -212,12 +192,6 @@ describe('Mail Service', () => {
             await expect(mailServiceNoPass.sendConfirmation(user))
                 .rejects
                 .toThrow('MAIL_SENDER_PASSWORD not configured');
-
-            // Verify error was logged
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                'Failed to render or send confirmation email:',
-                'MAIL_SENDER_PASSWORD not configured. Cannot send email.'
-            );
 
             // Restore
             if (originalPassword) {

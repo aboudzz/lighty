@@ -34,7 +34,7 @@ if (!isProduction) {
  *       200:
  *         description: show welcome message
  */
-router.get('/', (req, res, next) => res.send('Welcome to lighty!'));
+router.get('/', (req, res) => res.send('Welcome to lighty!'));
 
 /**
  * @openapi
@@ -45,7 +45,7 @@ router.get('/', (req, res, next) => res.send('Welcome to lighty!'));
  *       200:
  *         description: reply with pong.
  */
-router.get('/ping', (req, res, next) => res.send('pong'));
+router.get('/ping', (req, res) => res.send('pong'));
 
 const faviconLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes

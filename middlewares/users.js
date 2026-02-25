@@ -6,6 +6,7 @@ const validator = require('validator');
 
 const User = require('../models/User');
 const errors = require('../utils/errors');
+const logger = require('../utils/logger').child({ module: 'users' });
 const mailService = require('../services/mail');
 const { validatePassword, validateEmail, validateName } = require('../utils/validation');
 
@@ -95,7 +96,7 @@ module.exports = {
                 try {
                     await mailService.sendResetPassword(user);
                 } catch (mailError) {
-                    console.error('Failed to send reset password email for', email, mailError);
+                    logger.error({ err: mailError }, 'Failed to send reset password email for %s', email);
                 }
                 await user.save();
             }
@@ -112,7 +113,7 @@ module.exports = {
             validatePassword(req.body.password);
             
             const user = await User.findOne({ 'resetPasswordInfo.lookup': lookup });
-            if (!user || user.resetPasswordInfo.verify !== verify) return next(errors.BAD_REQUEST);
+            if (!user || !user.resetPasswordInfo || user.resetPasswordInfo.verify !== verify) return next(errors.BAD_REQUEST);
             if (user.resetPasswordInfo.expire < Date.now()) return next(errors.LINK_EXPIRED);
             
             user.password = req.body.password;

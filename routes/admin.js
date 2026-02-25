@@ -8,8 +8,8 @@ const middleware = require('../middlewares/admin');
 const jwtAuth = () => passport.authenticate('jwt', { session: false });
 
 const isAdmin = (req, res, next) => {
-  if (req.user.role === 'admin') return next();
-  next(errors.FORBIDDEN);
+  if (!req.user || req.user.role !== 'admin') return next(errors.FORBIDDEN);
+  next();
 };
 
 router.use(jwtAuth(), isAdmin);

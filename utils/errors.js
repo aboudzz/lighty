@@ -19,8 +19,6 @@ const errors = {
     },
 
     handler: (err, req, res, next) => {
-        logger.debug({ err }, 'Request error');
-
         // Map Mongoose errors to 400
         if (err.name === 'CastError' || err.name === 'ValidationError') {
             err.status = 400;
@@ -30,7 +28,9 @@ const errors = {
         const status = err.status || 500;
 
         if (status >= 500) {
-            console.error(`[ERROR] ${req.method} ${req.url} - ${err.message}`);
+            logger.error({ err }, '%s %s - %s', req.method, req.url, err.message);
+        } else {
+            logger.warn({ err }, '%s %s - %s', req.method, req.url, err.message);
         }
 
         res.status(status).json({

@@ -10,14 +10,13 @@ const initAdmin = () => {
     User.findOne({ email: adminEmail }).then(adminUser => {
         if (!adminUser) {
             if (!adminPassword) {
-                console.warn(`WARNING: ${config.get('admin.password_env')} environment variable not set. Admin user will not be created.`);
-                console.warn('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
+                logger.warn('%s environment variable not set. Admin user will not be created.', config.get('admin.password_env'));
                 return;
             }
             try {
                 validatePassword(adminPassword);
             } catch {
-                console.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
+                logger.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
                 return;
             }
             logger.debug('Creating admin user');
@@ -28,11 +27,11 @@ const initAdmin = () => {
                 confirmed: true,
                 role: 'admin'
             }).catch(err => {
-                console.error('Failed to create admin user:', err.message);
+                logger.error({ err }, 'Failed to create admin user');
             });
         }
     }).catch(err => {
-        logger.debug('Error checking for admin user: %s', err.message);
+        logger.error({ err }, 'Error checking for admin user');
     });
 };
 
