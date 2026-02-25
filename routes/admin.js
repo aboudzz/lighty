@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const passport = require('passport');
+const passport = require("passport");
 
-const { isAdmin } = require('../utils/auth');
-const middleware = require('../controllers/admin');
+const { isAdmin } = require("../utils/auth");
+const middleware = require("../controllers/admin");
 
-const jwtAuth = () => passport.authenticate('jwt', { session: false });
+const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 router.use(jwtAuth(), isAdmin);
 
@@ -32,8 +32,7 @@ router.use(jwtAuth(), isAdmin);
  *                 count:
  *                   type: integer
  */
-router.route('/users')
-  .get(middleware.listUsers);
+router.route("/users").get(middleware.listUsers);
 
 /**
  * @openapi
@@ -107,9 +106,10 @@ router.route('/users')
  *                 deletedCount:
  *                   type: integer
  */
-router.route('/users/:id')
-  .get(middleware.getUser)
-  .patch(middleware.updateUser)
-  .delete(middleware.deleteUser);
+router
+    .route("/users/:id")
+    .get(middleware.getUser)
+    .patch(middleware.updateUser)
+    .delete(middleware.deleteUser);
 
 module.exports = router;

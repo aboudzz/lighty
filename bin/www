@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-const app = require('../app');
-const http = require('http');
-const config = require('config');
-const logger = require('../utils/logger');
+const app = require("../app");
+const http = require("http");
+const config = require("config");
+const logger = require("../utils/logger");
 
-const port = normalizePort(config.get('server.port'));
-app.set('port', port);
+const port = normalizePort(config.get("server.port"));
+app.set("port", port);
 
 function normalizePort(val) {
     const parsedPort = parseInt(val, 10);
@@ -21,26 +21,27 @@ function normalizePort(val) {
 
 const server = http.createServer(app);
 server.listen(port);
-server.on('error', (err) => {
-    if (err.syscall !== 'listen') {
+server.on("error", (err) => {
+    if (err.syscall !== "listen") {
         throw err;
     }
-    const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+    const bind = typeof port === "string" ? `Pipe ${port}` : `Port ${port}`;
     switch (err.code) {
-        case 'EACCES':
-            logger.fatal('%s requires elevated privileges', bind);
+        case "EACCES":
+            logger.fatal("%s requires elevated privileges", bind);
             process.exit(1);
             break;
-        case 'EADDRINUSE':
-            logger.fatal('%s is already in use', bind);
+        case "EADDRINUSE":
+            logger.fatal("%s is already in use", bind);
             process.exit(1);
             break;
         default:
             throw err;
     }
 });
-server.on('listening', () => {
+server.on("listening", () => {
     const addr = server.address();
-    const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
-    logger.info('Listening on %s', bind);
+    const bind =
+        typeof addr === "string" ? `pipe ${addr}` : `port ${addr.port}`;
+    logger.info("Listening on %s", bind);
 });

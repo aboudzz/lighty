@@ -3,6 +3,7 @@
  * @param {string} str - The string to escape
  * @returns {string} Escaped string
  */
-const escapeRegExp = (str) => str.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+const escapeRegExp = (str) =>
+    str.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 
 module.exports = { escapeRegExp };

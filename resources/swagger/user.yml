@@ -1,35 +1,35 @@
 x-template:
-  userId: &userId
-    type: string
-    description: the unique identifier of user
+    userId: &userId
+        type: string
+        description: the unique identifier of user
 
-  userName: &userName
-    type: string
-    description: the name of user
+    userName: &userName
+        type: string
+        description: the name of user
 
-  userEmail: &userEmail
-    type: string
-    format: email
-    description: the email address of user
+    userEmail: &userEmail
+        type: string
+        format: email
+        description: the email address of user
 
-  userPassword: &userPassword
-    type: string
-    format: password
-    description: the password of user
+    userPassword: &userPassword
+        type: string
+        format: password
+        description: the password of user
 
-  userRole: &userRole
-    type: string
-    enum:
-      - admin
-      - user
-    description: the role of user
+    userRole: &userRole
+        type: string
+        enum:
+            - admin
+            - user
+        description: the role of user
 
-  userConfirmed: &userConfirmed
-    type: boolean
-    description: the confirmation status of user
+    userConfirmed: &userConfirmed
+        type: boolean
+        description: the confirmation status of user
 
-  userToken: &userToken
-    type: string
-    description: authentication token of user for API access, 
-      only available when user is being authenticated
-    x-optional: true
+    userToken: &userToken
+        type: string
+        description: authentication token of user for API access,
+            only available when user is being authenticated
+        x-optional: true

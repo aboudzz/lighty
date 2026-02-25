@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-const roles = ['admin', 'user'];
+const roles = ["admin", "user"];
 
 /**
  * @openapi
@@ -32,28 +32,31 @@ const roles = ['admin', 'user'];
  *         confirmed: *userConfirmed
  *         token: *userToken
  */
-const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true, unique: true },
-    password: { type: String, required: true },
-    confirmed: { type: Boolean, default: false },
-    role: { type: String, enum: roles, default: 'user' },
-    confirmationInfo: {
-        lookup: String,
-        verify: String,
-        expire: Date,
-        URL: String
+const UserSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        email: { type: String, required: true, trim: true, unique: true },
+        password: { type: String, required: true },
+        confirmed: { type: Boolean, default: false },
+        role: { type: String, enum: roles, default: "user" },
+        confirmationInfo: {
+            lookup: String,
+            verify: String,
+            expire: Date,
+            URL: String,
+        },
+        resetPasswordInfo: {
+            lookup: String,
+            verify: String,
+            expire: Date,
+            URL: String,
+        },
     },
-    resetPasswordInfo: {
-        lookup: String,
-        verify: String,
-        expire: Date,
-        URL: String
-    }
-}, { timestamps: true });
+    { timestamps: true },
+);
 
-UserSchema.pre('save', async function () {
-    if (this.isModified('password')) {
+UserSchema.pre("save", async function () {
+    if (this.isModified("password")) {
         this.password = await bcrypt.hash(this.password, 10);
     }
 });
@@ -71,5 +74,5 @@ UserSchema.methods.getProfile = function () {
     };
 };
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 module.exports = User;

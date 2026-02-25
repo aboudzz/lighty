@@ -1,19 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const passport = require('passport');
-const rateLimit = require('express-rate-limit');
+const passport = require("passport");
+const rateLimit = require("express-rate-limit");
 
-const middleware = require('../controllers/users');
+const middleware = require("../controllers/users");
 
-const jwtAuth = () => passport.authenticate('jwt', { session: false });
+const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 // Stricter rate limiting for auth endpoints (brute-force protection)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10,
     message: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: 'Too many attempts, please try again later.'
+        code: "RATE_LIMIT_EXCEEDED",
+        message: "Too many attempts, please try again later.",
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -44,7 +44,7 @@ const authLimiter = rateLimit({
  *       401:
  *         description: invalid credentials
  */
-router.post('/login', authLimiter, middleware.authenticate);
+router.post("/login", authLimiter, middleware.authenticate);
 
 /**
  * @openapi
@@ -64,7 +64,7 @@ router.post('/login', authLimiter, middleware.authenticate);
  *       200:
  *         description: forgot password request received
  */
-router.post('/forgot-password', authLimiter, middleware.forgotPassword);
+router.post("/forgot-password", authLimiter, middleware.forgotPassword);
 
 /**
  * @openapi
@@ -90,7 +90,7 @@ router.post('/forgot-password', authLimiter, middleware.forgotPassword);
  *       400:
  *         description: invalid verification
  */
-router.post('/reset-password', authLimiter, middleware.resetPassword);
+router.post("/reset-password", authLimiter, middleware.resetPassword);
 
 /**
  * @openapi
@@ -119,6 +119,6 @@ router.post('/reset-password', authLimiter, middleware.resetPassword);
  *       401:
  *         description: unauthorized
  */
-router.post('/update-password', jwtAuth(), middleware.updatePassword);
+router.post("/update-password", jwtAuth(), middleware.updatePassword);
 
 module.exports = router;
