@@ -61,6 +61,47 @@ describe('GET /admin/users', () => {
 
         expect(res.status).toBe(404);
     });
+
+    it('should filter users when search query parameter is provided', async () => {
+        let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
+        User.find.mockReturnValue({
+            sort: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            skip: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            countDocuments: jest.fn().mockResolvedValue(1),
+            exec: jest.fn().mockResolvedValue([userJohnDoe]),
+        });
+
+        const res = await request(app).get('/admin/users?search=John');
+
+        expect(res.status).toBe(200);
+        expect(User.find).toHaveBeenCalledWith({
+            $or: [
+                { name: expect.any(RegExp) },
+                { email: expect.any(RegExp) }
+            ]
+        });
+    });
+
+    it('should sort users when sort query parameter is provided', async () => {
+        let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
+        let userJaneSmith = new User({ name: 'Jane Smith', email: 'jane@example.com' });
+        const mockFind = {
+            sort: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            skip: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            countDocuments: jest.fn().mockResolvedValue(2),
+            exec: jest.fn().mockResolvedValue([userJaneSmith, userJohnDoe]),
+        };
+        User.find.mockReturnValue(mockFind);
+
+        const res = await request(app).get('/admin/users?sort=name');
+
+        expect(res.status).toBe(200);
+        expect(mockFind.sort).toHaveBeenCalledWith({ name: 1 });
+    });
 });
 
 describe('PUT /admin/users/:id', () => {

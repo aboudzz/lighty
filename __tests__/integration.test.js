@@ -59,7 +59,7 @@ describe('Integration Tests - User Workflows', () => {
                     password: 'SecurePass123'
                 });
 
-            expect(registerResponse.status).toBe(200);
+            expect(registerResponse.status).toBe(201);
             expect(registerResponse.body.email).toBe('newuser@example.com');
             expect(registerResponse.body.confirmed).toBe(false);
             expect(createdUser.confirmationInfo).toBeDefined();
@@ -227,14 +227,24 @@ describe('Integration Tests - User Workflows', () => {
         it('should maintain backward compatibility with legacy routes', async () => {
             User.findById.mockResolvedValue(testUser);
 
-            const response = await request(app).get('/users/507f1f77bcf86cd799439011');
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
+
+            const response = await request(app)
+                .get('/users/507f1f77bcf86cd799439011')
+                .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(200);
         });
 
         it('should work with new versioned routes', async () => {
             User.findById.mockResolvedValue(testUser);
 
-            const response = await request(app).get('/api/v1/users/507f1f77bcf86cd799439011');
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
+
+            const response = await request(app)
+                .get('/api/v1/users/507f1f77bcf86cd799439011')
+                .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(200);
         });
     });
@@ -266,9 +276,17 @@ describe('Integration Tests - User Workflows', () => {
         });
 
         it('should return 404 for non-existent user', async () => {
-            User.findById.mockResolvedValue(null);
+            // Return testUser for passport auth, then null for the actual lookup
+            User.findById
+                .mockResolvedValueOnce(testUser)
+                .mockResolvedValueOnce(null);
 
-            const response = await request(app).get('/api/v1/users/nonexistentid');
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
+
+            const response = await request(app)
+                .get('/api/v1/users/nonexistentid')
+                .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(404);
         });
     });

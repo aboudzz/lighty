@@ -25,7 +25,7 @@ paths:
                       $ref: '#/components/schemas/UserProfile'
                   count:
                     type: integer
-  '/admin/users/{id}':
+  /admin/users/{id}:
     get:
       summary: Retrieve a user by ID
       tags:
@@ -109,6 +109,14 @@ paths:
       responses:
         '200':
           description: reply with pong.
+  /health:
+    get:
+      description: health check with database connectivity status
+      responses:
+        '200':
+          description: service is healthy
+        '503':
+          description: service is unhealthy
   /favicon.ico:
     get:
       description: get the favicon
@@ -167,7 +175,7 @@ paths:
           description: incorrect old password
         '401':
           description: unauthorized
-  '/users/{id}':
+  /users/{id}:
     get:
       summary: get user by id
       tags:

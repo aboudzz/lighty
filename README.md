@@ -103,7 +103,7 @@ Swagger UI is available at `/swagger` in non-production environments. OpenAPI an
 ├── app.js               # Express app setup (middleware, routes, DB connection)
 ├── config/              # Environment-specific JSON config (default, test, production)
 ├── routes/              # Route definitions and OpenAPI annotations
-├── middlewares/         # Request handlers (validation, DB queries, responses)
+├── controllers/         # Request handlers (validation, DB queries, responses)
 ├── models/              # Mongoose schemas
 ├── services/            # External integrations (email)
 ├── utils/               # Shared utilities (errors, validation, JWT strategy)

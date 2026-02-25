@@ -12,35 +12,15 @@ const tlsOptions = {
     rejectUnauthorized: process.env.NODE_ENV === 'production'
 };
 
-// verify mail server connection
-const transporter = nodemailer.createTransport({
-    host: service,
-    port: port,
-    secure: secure,
-    tls: tlsOptions
-});
-
-transporter.verify((error, success) => {
-    if (error) {
-        logger.error({ error }, 'Mail server connection failed');
-    } else {
-        if (!sender) {
-            logger.warn('Mail sender address not configured. Email functionality will be limited.');
-        }
-        if (!process.env[config.get('mail.sender_password_env')] && process.env.NODE_ENV !== 'test') {
-            logger.warn('%s environment variable not set. Email functionality will be limited.', config.get('mail.sender_password_env'));
-        }
-    }
-});
-
+let verified = false;
 let authTransporter = null;
 
-const getAuthTransporter = () => {
-    const pass = process.env[config.get('mail.sender_password_env')];
-    if (!pass) {
-        throw new Error('MAIL_SENDER_PASSWORD not configured. Cannot send email.');
-    }
+const getTransporter = () => {
     if (!authTransporter) {
+        const pass = process.env[config.get('mail.sender_password_env')];
+        if (!pass) {
+            throw new Error('MAIL_SENDER_PASSWORD not configured. Cannot send email.');
+        }
         authTransporter = nodemailer.createTransport({
             host: service,
             port: port,
@@ -52,10 +32,38 @@ const getAuthTransporter = () => {
     return authTransporter;
 };
 
+const verifyConnection = () => {
+    if (verified) return;
+    verified = true;
+    const transporter = nodemailer.createTransport({
+        host: service,
+        port: port,
+        secure: secure,
+        tls: tlsOptions
+    });
+    transporter.verify((error) => {
+        if (error) {
+            logger.error({ error }, 'Mail server connection failed');
+        } else {
+            if (!sender) {
+                logger.warn('Mail sender address not configured. Email functionality will be limited.');
+            }
+            if (!process.env[config.get('mail.sender_password_env')] && process.env.NODE_ENV !== 'test') {
+                logger.warn('%s environment variable not set. Email functionality will be limited.', config.get('mail.sender_password_env'));
+            }
+        }
+    });
+};
+
+// Verify on first use, not at import time
+if (process.env.NODE_ENV !== 'test') {
+    verifyConnection();
+}
+
 const send = (to, subject, text, html) => {
     let transport;
     try {
-        transport = getAuthTransporter();
+        transport = getTransporter();
     } catch (err) {
         logger.debug('Email send failed: %s', err.message);
         return Promise.reject(err);
@@ -84,9 +92,13 @@ const mailer = {
         const link = `${URL}?l=${lookup}&v=${verify}`;
         logger.debug('Confirmation link generated for: %s', to);
         const textFile = path.join(__dirname, '../resources/emails/confirm_text.ejs');
+        const htmlFile = path.join(__dirname, '../resources/emails/confirm_html.ejs');
         
-        return ejs.renderFile(textFile, { name, link })
-            .then(text => send(to, subject, text, null))
+        return Promise.all([
+            ejs.renderFile(textFile, { name, link }),
+            ejs.renderFile(htmlFile, { name, link })
+        ])
+            .then(([text, html]) => send(to, subject, text, html))
             .catch(err => {
                 logger.error({ err }, 'Failed to render or send confirmation email');
                 throw err;
@@ -103,9 +115,13 @@ const mailer = {
         const link = `${URL}?l=${lookup}&v=${verify}`;
         logger.debug('Reset password link generated for: %s', to);
         const textFile = path.join(__dirname, '../resources/emails/resetPassword_text.ejs');
+        const htmlFile = path.join(__dirname, '../resources/emails/resetPassword_html.ejs');
         
-        return ejs.renderFile(textFile, { name, link })
-            .then(text => send(to, subject, text, null))
+        return Promise.all([
+            ejs.renderFile(textFile, { name, link }),
+            ejs.renderFile(htmlFile, { name, link })
+        ])
+            .then(([text, html]) => send(to, subject, text, html))
             .catch(err => {
                 logger.error({ err }, 'Failed to render or send reset password email');
                 throw err;

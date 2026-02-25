@@ -41,6 +41,7 @@ const UserSchema = new mongoose.Schema({
     confirmationInfo: {
         lookup: String,
         verify: String,
+        expire: Date,
         URL: String
     },
     resetPasswordInfo: {

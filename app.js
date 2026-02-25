@@ -5,7 +5,6 @@ const pinoHttp = require('pino-http');
 const express = require('express');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
@@ -111,9 +110,8 @@ app.use(pinoHttp({
         return `[${req.method}]  ${req.url} ${res.statusCode} - ${req.socket.remoteAddress} - ${error.message}`;
     }
 }));
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(routes);

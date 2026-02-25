@@ -15,10 +15,10 @@ Tests use Jest with `supertest` for HTTP assertions. Mongoose and nodemailer are
 
 This is an Express 5 REST API with MongoDB (Mongoose) and JWT authentication (Passport).
 
-**Request flow:** `routes/` → `middlewares/` → `models/` / `services/`
+**Request flow:** `routes/` → `controllers/` → `models/` / `services/`
 
-- **`routes/`** — Define endpoints and wire up Passport auth. Route handlers are thin; they delegate to middleware functions. Routes are mounted under `/api/v1/` with legacy mounts at the root for backward compatibility.
-- **`middlewares/`** — Contain the actual request-handling logic (validation, DB queries, response building). Despite the name, these are effectively controllers.
+- **`routes/`** — Define endpoints and wire up Passport auth. Route handlers are thin; they delegate to controller functions. Routes are mounted under `/api/v1/` with legacy mounts at the root for backward compatibility.
+- **`controllers/`** — Contain the actual request-handling logic (validation, DB queries, response building).
 - **`models/`** — Mongoose schemas. `User.js` also auto-creates an admin user on DB connection using config values.
 - **`services/`** — External integrations (email via nodemailer with EJS templates from `resources/emails/`).
 - **`utils/`** — Shared utilities: centralized error objects (`errors.js`), input validation (`validation.js`), JWT strategy (`jwtStrategy.js`).

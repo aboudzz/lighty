@@ -21,69 +21,10 @@ const authLimiter = rateLimit({
 
 /**
  * @openapi
- * /users/register:
- *   post:
- *     summary: register a new user
- *     tags: [users]
- *     requestBody:
- *       required: true
- *       content: 
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name: *userName
- *               email: *userEmail
- *               password: *userPassword
- *     responses:
- *       200:
- *         description: user found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserProfile'
- *       400:
- *         description: email is already registered
- */
-router.post('/register', authLimiter, middleware.register);
-
-/**
- * @openapi
- * /users/confirm:
- *   get:
- *     summary: confirm user email
- *     tags: [users]
- *     parameters:
- *       - in: query
- *         name: l
- *         description: lookup
- *         required: true
- *         schema:
- *           type: string
- *       - in: query
- *         name: v
- *         description: verify
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: user verified
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserProfile'
- *       400:
- *         description: invalid verification
- */
-router.get('/confirm', middleware.confirm);
-
-/**
- * @openapi
- * /users/authenticate:
+ * /auth/login:
  *   post:
  *     summary: authenticate user
- *     tags: [users]
+ *     tags: [auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -100,17 +41,17 @@ router.get('/confirm', middleware.confirm);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UserProfileWithToken'
- *       400:
- *         description: email is not registered or incorrect password
+ *       401:
+ *         description: invalid credentials
  */
-router.post('/authenticate', authLimiter, middleware.authenticate);
+router.post('/login', authLimiter, middleware.authenticate);
 
 /**
  * @openapi
- * /users/forgotpassword:
+ * /auth/forgot-password:
  *   post:
  *     summary: send reset password email
- *     tags: [users]
+ *     tags: [auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -123,14 +64,14 @@ router.post('/authenticate', authLimiter, middleware.authenticate);
  *       200:
  *         description: forgot password request received
  */
-router.post('/forgotpassword', authLimiter, middleware.forgotPassword);
+router.post('/forgot-password', authLimiter, middleware.forgotPassword);
 
 /**
  * @openapi
- * /users/resetpassword:
+ * /auth/reset-password:
  *   post:
  *     summary: reset password
- *     tags: [users]
+ *     tags: [auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -149,14 +90,14 @@ router.post('/forgotpassword', authLimiter, middleware.forgotPassword);
  *       400:
  *         description: invalid verification
  */
-router.post('/resetpassword', authLimiter, middleware.resetPassword);
+router.post('/reset-password', authLimiter, middleware.resetPassword);
 
 /**
  * @openapi
- * /users/updatepassword:
+ * /auth/update-password:
  *   post:
  *     summary: update password
- *     tags: [users]
+ *     tags: [auth]
  *     security:
  *      - jwtAuth: []
  *     requestBody:
@@ -178,30 +119,6 @@ router.post('/resetpassword', authLimiter, middleware.resetPassword);
  *       401:
  *         description: unauthorized
  */
-router.post('/updatepassword', jwtAuth(), middleware.updatePassword);
-
-/**
- * @openapi
- * /users/{id}:
- *   get:
- *     summary: get user by id
- *     tags: [users]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: user found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserProfile'
- *       404:
- *         description: user not found
- */
-router.get('/:id', jwtAuth(), middleware.getUser);
+router.post('/update-password', jwtAuth(), middleware.updatePassword);
 
 module.exports = router;

@@ -2,15 +2,10 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 
-const errors = require('../utils/errors');
-const middleware = require('../middlewares/admin');
+const { isAdmin } = require('../utils/auth');
+const middleware = require('../controllers/admin');
 
 const jwtAuth = () => passport.authenticate('jwt', { session: false });
-
-const isAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') return next(errors.FORBIDDEN);
-  next();
-};
 
 router.use(jwtAuth(), isAdmin);
 
@@ -38,7 +33,7 @@ router.use(jwtAuth(), isAdmin);
  *                   type: integer
  */
 router.route('/users')
-  .get(middleware.getUsers);
+  .get(middleware.listUsers);
 
 /**
  * @openapi
@@ -113,7 +108,7 @@ router.route('/users')
  *                   type: integer
  */
 router.route('/users/:id')
-  .get(middleware.getUsers)
+  .get(middleware.getUser)
   .put(middleware.updateUser)
   .delete(middleware.deleteUser);
 

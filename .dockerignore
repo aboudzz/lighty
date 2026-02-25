@@ -1,0 +1,9 @@
+node_modules
+.git
+coverage
+__tests__
+.env*
+.github
+.vscode
+logs
+mailserver/docker-data

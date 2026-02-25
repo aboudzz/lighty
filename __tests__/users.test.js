@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 jest.mock('passport');
+jest.mock('express-rate-limit', () => jest.fn(() => (req, res, next) => next()));
 jest.mock('../models/User', () => {
     const User = jest.requireActual('../models/User');
     User.findById = jest.fn();
@@ -56,7 +57,7 @@ describe('POST /users/register', () => {
         const res = await request(app).post('/users/register')
             .send({name: 'Jane Smith', email: 'jane@example.com', password: 'StrongPass123'});
         
-        expect(res.statusCode).toEqual(200);
+        expect(res.statusCode).toEqual(201);
         expect(res.body).toEqual(createdUser.getProfile());
     });
 
@@ -102,6 +103,18 @@ describe('GET /users/confirm', () => {
         const res = await request(app).get('/users/confirm?l=lookup&v=BADVERIFY');
 
         expect(res.statusCode).toEqual(400);
+        expect(userJohnDoe.confirmed).toEqual(false);
+    });
+
+    it('should return 410 when confirmation link is expired', async () => {
+        const confirmationInfo = { lookup: 'lookup', verify: 'verify', expire: Date.now() - 1000 };
+        userJohnDoe.confirmed = false;
+        userJohnDoe.confirmationInfo = confirmationInfo;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).get('/users/confirm?l=lookup&v=verify');
+
+        expect(res.statusCode).toEqual(410);
         expect(userJohnDoe.confirmed).toEqual(false);
     });
 });
@@ -193,7 +206,7 @@ describe('POST /users/updatepassword', () => {
         const res = await request(app).post('/users/updatepassword')
             .send({ oldPassword: validPassword, newPassword: 'NewStrongPass123' });
 
-        expect(res.statusCode).toEqual(500);
+        expect(res.statusCode).toEqual(401);
     });
 });
 
@@ -226,5 +239,18 @@ describe('POST /users/resetpassword', () => {
         expect(res.statusCode).toEqual(400);
         expect(bcrypt.compareSync(validPassword, userJohnDoe.password)).toBeTruthy();
         expect(userJohnDoe.resetPasswordInfo.lookup).toEqual("lookup");
+    });
+
+    it('should return 410 when reset password link is expired', async () => {
+        const resetPasswordInfo = { lookup: 'lookup', verify: 'verify', expire: Date.now() - 1000 };
+        userJohnDoe.resetPasswordInfo = resetPasswordInfo;
+        userJohnDoe.password = hash;
+        authenticatedUser = null;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).post('/users/resetpassword')
+            .send({ lookup: 'lookup', verify: 'verify', password: 'NewStrongPass123' });
+
+        expect(res.statusCode).toEqual(410);
     });
 });
