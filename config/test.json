@@ -3,7 +3,7 @@
         "uri": "mongodb://localhost:27017/lighty_test"
     },
     "rateLimit": {
-        "windowMs": 1000,
+        "windowMs": 60000,
         "max": 200
     }
 }

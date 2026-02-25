@@ -319,13 +319,12 @@ describe('Integration Tests - User Workflows', () => {
         it('should return 429 when rate limit is exceeded', async () => {
             const config = require('config');
             const max = config.get('rateLimit.max');
-            const promises = [];
-            for (let i = 0; i <= max; i++) {
-                promises.push(request(app).get('/ping'));
+            // Send requests sequentially so the rate limiter counts accurately
+            for (let i = 0; i < max; i++) {
+                await request(app).get('/ping');
             }
-            const responses = await Promise.all(promises);
-            const blocked = responses.filter(r => r.status === 429);
-            expect(blocked.length).toBeGreaterThanOrEqual(1);
+            const response = await request(app).get('/ping');
+            expect(response.status).toBe(429);
         });
     });
 });
