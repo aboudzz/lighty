@@ -1,6 +1,7 @@
 const passportJwt = require('passport-jwt');
 const config = require('config');
 
+const logger = require('./logger').child({ module: 'jwtStrategy' });
 const User = require('../models/User');
 
 const { ExtractJwt, Strategy: JwtStrategy } = passportJwt;
@@ -9,7 +10,7 @@ const { ExtractJwt, Strategy: JwtStrategy } = passportJwt;
 const jwtSecret = process.env[config.get('jwt.secret_env')];
 
 if (!jwtSecret) {
-    console.error('CRITICAL: JWT_SECRET environment variable is required!');
+    logger.fatal('JWT_SECRET environment variable is required!');
     if (process.env.NODE_ENV !== 'test') {
         process.exit(1);
     }

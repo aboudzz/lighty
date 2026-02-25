@@ -43,7 +43,7 @@ module.exports = {
             }
         });
         mailService.sendConfirmation(user).catch(err => {
-            logger.error({ err }, 'Failed to send confirmation email for %s', email);
+            logger.error({ err, userId: user._id, email }, 'Failed to send confirmation email');
         });
         res.status(201).json(user.getProfile());
     },
@@ -87,7 +87,7 @@ module.exports = {
             try {
                 await mailService.sendResetPassword(user);
             } catch (mailError) {
-                logger.error({ err: mailError }, 'Failed to send reset password email for %s', email);
+                logger.error({ err: mailError, userId: user._id, email }, 'Failed to send reset password email');
             }
         }
         res.status(200).send();

@@ -26,11 +26,20 @@ const errors = {
         }
 
         const status = err.status || 500;
+        const logData = { err, reqId: req.id };
 
         if (status >= 500) {
-            logger.error({ err }, '%s %s - %s', req.method, req.url, err.message);
+            // Include redacted body for 5xx to aid debugging
+            const body = req.body ? { ...req.body } : undefined;
+            if (body) {
+                for (const key of ['password', 'oldPassword', 'newPassword']) {
+                    if (body[key]) body[key] = '[REDACTED]';
+                }
+            }
+            logData.body = body;
+            logger.error(logData, '%s %s - %s', req.method, req.url, err.message);
         } else {
-            logger.warn({ err }, '%s %s - %s', req.method, req.url, err.message);
+            logger.warn(logData, '%s %s - %s', req.method, req.url, err.message);
         }
 
         res.status(status).json({

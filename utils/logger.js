@@ -13,7 +13,7 @@ const logger = pino({
                 colorize: true,
                 translateTime: 'SYS:ddd mmm dd yyyy HH:MM:ss.l',
                 ignore: 'pid,hostname',
-                hideObject: true,
+                hideObject: false,
                 messageFormat: '{msg}'
             }
         }

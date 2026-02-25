@@ -61,29 +61,13 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 const send = (to, subject, text, html) => {
-    let transport;
-    try {
-        transport = getTransporter();
-    } catch (err) {
-        logger.debug('Email send failed: %s', err.message);
-        return Promise.reject(err);
-    }
-
-    return transport.sendMail({ from: sender, to, subject, text, html })
-        .then(info => {
-            logger.debug('Email sent successfully: %s', info.messageId);
-            return info;
-        })
-        .catch(err => {
-            logger.error({ err }, 'Failed to send email');
-            throw err;
-        });
+    const transport = getTransporter();
+    return transport.sendMail({ from: sender, to, subject, text, html });
 };
 
 const mailer = {
 
     sendConfirmation: user => {
-        const subject = 'Confirmation Email';
         const to = user.email;
         const name = user.name;
         const lookup = user.confirmationInfo.lookup;
@@ -98,15 +82,10 @@ const mailer = {
             ejs.renderFile(textFile, { name, link }),
             ejs.renderFile(htmlFile, { name, link })
         ])
-            .then(([text, html]) => send(to, subject, text, html))
-            .catch(err => {
-                logger.error({ err }, 'Failed to render or send confirmation email');
-                throw err;
-            });
+            .then(([text, html]) => send(to, 'Confirmation Email', text, html));
     },
 
     sendResetPassword: user => {
-        const subject = 'Reset Password';
         const to = user.email;
         const name = user.name;
         const lookup = user.resetPasswordInfo.lookup;
@@ -121,11 +100,7 @@ const mailer = {
             ejs.renderFile(textFile, { name, link }),
             ejs.renderFile(htmlFile, { name, link })
         ])
-            .then(([text, html]) => send(to, subject, text, html))
-            .catch(err => {
-                logger.error({ err }, 'Failed to render or send reset password email');
-                throw err;
-            });
+            .then(([text, html]) => send(to, 'Reset Password', text, html));
     }
 };
 

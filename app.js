@@ -22,7 +22,7 @@ mongoose.set('strictQuery', false);
 if (process.env.NODE_ENV === 'production') {
     const jwtSecret = process.env[config.get('jwt.secret_env')];
     if (!jwtSecret || jwtSecret.length < 32) {
-        console.error('CRITICAL: JWT_SECRET environment variable must be set with at least 32 characters in production!');
+        logger.fatal('JWT_SECRET environment variable must be set with at least 32 characters in production!');
         process.exit(1);
     }
 }
@@ -119,5 +119,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(routes);
 app.use(errors.error404);
 app.use(errors.handler);
+
+// Log startup config summary (non-test only)
+/* istanbul ignore next */
+if (process.env.NODE_ENV !== 'test') {
+    logger.info({
+        mail: { host: config.get('mail.service'), port: config.get('mail.port') },
+        cors: config.get('cors.origins'),
+        rateLimit: { windowMs: windowMs, max: maxRequests },
+    }, 'App configured');
+}
 
 module.exports = app;

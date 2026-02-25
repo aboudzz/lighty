@@ -1,6 +1,7 @@
 const User = require('../models/User');
 
 const errors = require('../utils/errors');
+const logger = require('../utils/logger').child({ module: 'admin' }); // eslint-disable-line no-unused-vars
 const { escapeRegExp } = require('../utils/helpers');
 const { validateEmail, validateName, validateRole, validateConfirmed } = require('../utils/validation');
 
