@@ -10,7 +10,8 @@ const logger = require('../utils/logger').child({ module: 'users' });
 const mailService = require('../services/mail');
 const { validatePassword, validateEmail, validateName } = require('../utils/validation');
 
-const appUrl = config.get('app.url');
+const confirmationBaseUrl = config.get('app.confirmationBaseUrl');
+const resetPasswordBaseUrl = config.get('app.resetPasswordBaseUrl');
 const CONFIRMATION_EXPIRY_MS = 24 * 3600000; // 24 hours
 
 const getJwtSecret = () => process.env[config.get('jwt.secret_env')];
@@ -38,10 +39,12 @@ module.exports = {
                 lookup: nanoid(),
                 verify: nanoid(),
                 expire: Date.now() + CONFIRMATION_EXPIRY_MS,
-                URL: `${appUrl}/users/confirm`
+                URL: `${confirmationBaseUrl}/users/confirm`
             }
         });
-        mailService.sendConfirmation(user);
+        mailService.sendConfirmation(user).catch(err => {
+            logger.error({ err }, 'Failed to send confirmation email for %s', email);
+        });
         res.status(201).json(user.getProfile());
     },
 
@@ -70,7 +73,7 @@ module.exports = {
         res.json(profile);
     },
 
-    forgotPassword: async (req, res, next) => {
+    forgotPassword: async (req, res, _next) => {
         const email = validateEmail(req.body.email);
         const user = await User.findOne({ email: email });
         if (user) {
@@ -78,14 +81,14 @@ module.exports = {
                 lookup: nanoid(),
                 verify: nanoid(),
                 expire: Date.now() + 3600000, // 1 hour
-                URL: `${appUrl}/users/resetPassword`
+                URL: `${resetPasswordBaseUrl}/users/resetPassword`
             };
+            await user.save();
             try {
                 await mailService.sendResetPassword(user);
             } catch (mailError) {
                 logger.error({ err: mailError }, 'Failed to send reset password email for %s', email);
             }
-            await user.save();
         }
         res.status(200).send();
     },
@@ -107,6 +110,7 @@ module.exports = {
 
     updatePassword: async (req, res, next) => {
         if (!req.user) return next(errors.UNAUTHORIZED);
+        if (!req.body.oldPassword || typeof req.body.oldPassword !== 'string') return next(errors.BAD_REQUEST);
         const match = await bcrypt.compare(req.body.oldPassword, req.user.password);
         if (!match) return next(errors.INCORRECT_PASSWORD);
         

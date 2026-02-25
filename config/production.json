@@ -9,7 +9,9 @@
     },
     "app": {
         "_comment_url": "Replace with your actual production URL before deployment",
-        "url": "https://your-production-domain.com"
+        "url": "https://your-production-domain.com",
+        "confirmationBaseUrl": "https://your-production-domain.com",
+        "resetPasswordBaseUrl": "https://your-production-domain.com"
     },
     "swagger": {
         "generate": false

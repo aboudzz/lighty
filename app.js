@@ -1,5 +1,6 @@
 require('dotenv').config({ quiet: process.env.NODE_ENV === 'test' });
 const path = require('node:path');
+const crypto = require('node:crypto');
 const config = require('config');
 const pinoHttp = require('pino-http');
 const express = require('express');
@@ -99,6 +100,7 @@ app.use(limiter);
 app.use(pinoHttp({
     logger,
     autoLogging: process.env.NODE_ENV !== 'test',
+    genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID(),
     serializers: {
         req: () => undefined,
         res: () => undefined

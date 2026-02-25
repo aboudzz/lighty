@@ -49,7 +49,7 @@ module.exports = {
         res.json(user.getProfile());
     },
 
-    listUsers: async (req, res, next) => {
+    listUsers: async (req, res, _next) => {
         const findQuery = {};
         if (req.query.search) {
             const regexp = new RegExp(escapeRegExp(req.query.search), 'i');
@@ -65,7 +65,7 @@ module.exports = {
             .sort(sortQuery)
             .limit(limit)
             .skip(skip)
-            .select(['-password', '-confirmationInfo', '-resetPasswordInfo'])
+            .select(['_id', 'name', 'email', 'role', 'confirmed', 'createdAt', 'updatedAt'])
             .exec();
 
         const countCursor = User.find(findQuery).countDocuments();
@@ -76,7 +76,15 @@ module.exports = {
 
     updateUser: async (req, res, next) => {
         const sanitizedData = sanitizeUpdateFields(req.body);
+
+        // Guard: prevent admin from demoting themselves
+        if (req.params.id === req.user._id.toString() && sanitizedData.role && sanitizedData.role !== req.user.role) {
+            return next(errors.BAD_REQUEST);
+        }
         
+        // Note: findByIdAndUpdate bypasses pre('save') hooks.
+        // Never add 'password' to allowedFields in sanitizeUpdateFields
+        // without switching to findById + save() to ensure hashing runs.
         const updatedUser = await User.findByIdAndUpdate(req.params.id, sanitizedData, { returnDocument: 'after' });
         if (!updatedUser) return next(errors.NOT_FOUND);
         
@@ -84,7 +92,13 @@ module.exports = {
     },
 
     deleteUser: async (req, res, next) => {
+        // Guard: prevent admin from deleting themselves
+        if (req.params.id === req.user._id.toString()) {
+            return next(errors.BAD_REQUEST);
+        }
+
         const result = await User.deleteOne({ _id: req.params.id });
+        if (result.deletedCount === 0) return next(errors.NOT_FOUND);
         res.json(result);
     },
 };

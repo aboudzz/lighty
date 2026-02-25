@@ -57,7 +57,7 @@ router.route('/users')
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UserProfile'
- *   put:
+ *   patch:
  *     summary: Update a user by ID
  *     tags: [admin]
  *     security:
@@ -109,7 +109,7 @@ router.route('/users')
  */
 router.route('/users/:id')
   .get(middleware.getUser)
-  .put(middleware.updateUser)
+  .patch(middleware.updateUser)
   .delete(middleware.deleteUser);
 
 module.exports = router;

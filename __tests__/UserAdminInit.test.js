@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const config = require('config');
 
 // Mock User model before requiring initAdmin

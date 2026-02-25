@@ -18,7 +18,7 @@ const errors = {
         next(createError(404, `Requested URL: \`${req.method} ${req.url}\` not found`));
     },
 
-    handler: (err, req, res, next) => {
+    handler: (err, req, res, _next) => {
         // Map Mongoose errors to 400
         if (err.name === 'CastError' || err.name === 'ValidationError') {
             err.status = 400;

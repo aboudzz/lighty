@@ -59,13 +59,16 @@ UserSchema.pre('save', async function () {
 });
 
 UserSchema.methods.getProfile = function () {
-    const profile = this.toObject();
-    profile._id = profile._id.toString();
-    delete profile.password;
-    delete profile.confirmationInfo;
-    delete profile.resetPasswordInfo;
-    delete profile.__v;
-    return profile;
+    const obj = this.toObject();
+    return {
+        _id: obj._id.toString(),
+        name: obj.name,
+        email: obj.email,
+        role: obj.role,
+        confirmed: obj.confirmed,
+        createdAt: obj.createdAt,
+        updatedAt: obj.updatedAt,
+    };
 };
 
 const User = mongoose.model('User', UserSchema);

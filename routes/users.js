@@ -36,8 +36,8 @@ const authLimiter = rateLimit({
  *               email: *userEmail
  *               password: *userPassword
  *     responses:
- *       200:
- *         description: user found
+ *       201:
+ *         description: user created
  *         content:
  *           application/json:
  *             schema:
@@ -76,7 +76,7 @@ router.post('/register', authLimiter, middleware.register);
  *       400:
  *         description: invalid verification
  */
-router.get('/confirm', middleware.confirm);
+router.get('/confirm', authLimiter, middleware.confirm);
 
 /**
  * @openapi

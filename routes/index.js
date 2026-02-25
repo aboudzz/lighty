@@ -20,15 +20,19 @@ v1Router.use('/auth', auth);
 // Mount API v1
 router.use('/api/v1', v1Router);
 
-// Legacy routes (for backward compatibility - can be removed in future)
+// Legacy routes (deprecated — remove in v1.0.0)
+// These duplicate /api/v1/* routes at the root level for backward compatibility.
+// Set DISABLE_LEGACY_ROUTES=true to disable them early.
 const deprecationNotice = (req, res, next) => {
     res.set('Deprecation', 'true');
     res.set('Link', '</api/v1>; rel="successor-version"');
     next();
 };
-router.use('/users', deprecationNotice, users);
-router.use('/admin', deprecationNotice, admin);
-router.use('/auth', deprecationNotice, auth);
+if (process.env.DISABLE_LEGACY_ROUTES !== 'true') {
+    router.use('/users', deprecationNotice, users);
+    router.use('/admin', deprecationNotice, admin);
+    router.use('/auth', deprecationNotice, auth);
+}
 
 if (!isProduction) {
     router.use('/swagger', swagger);
@@ -91,7 +95,7 @@ const faviconLimiter = rateLimit({
  *       200:
  *         description: return favicon.ico
  */
-router.get('/favicon.ico', faviconLimiter, (req, res, next) => {
+router.get('/favicon.ico', faviconLimiter, (req, res, _next) => {
     res.sendFile(path.join(__dirname, '../public/favicon.ico'));
 });
 

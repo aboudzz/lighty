@@ -19,7 +19,7 @@ const userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com', pass
 userJohnDoe.save = jest.fn();
 
 let authenticatedUser = userJohnDoe;
-passport.authenticate = jest.fn((strategy, options, callback) => (req, res, next) => {
+passport.authenticate = jest.fn((_strategy, _options, _callback) => (req, res, next) => {
     req.user = authenticatedUser;
     next();
 });

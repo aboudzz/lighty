@@ -29,7 +29,9 @@
         "max": 100
     },
     "app": {
-        "url": "http://localhost:3000"
+        "url": "http://localhost:3000",
+        "confirmationBaseUrl": "http://localhost:3000",
+        "resetPasswordBaseUrl": "http://localhost:3000"
     },
     "swagger": {
         "generate": true,
