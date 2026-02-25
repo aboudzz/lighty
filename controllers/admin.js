@@ -57,8 +57,8 @@ const sanitizeUpdateFields = (body) => {
 
 module.exports = {
     getUser: async (req, res, next) => {
-        validateObjectId(req.params.id);
-        const user = await User.findById(req.params.id);
+        const id = validateObjectId(req.params.id);
+        const user = await User.findById(String(id));
         if (!user) return next(errors.NOT_FOUND);
         res.json(user.getProfile());
     },
@@ -103,12 +103,12 @@ module.exports = {
     },
 
     updateUser: async (req, res, next) => {
-        validateObjectId(req.params.id);
+        const id = validateObjectId(req.params.id);
         const sanitizedData = sanitizeUpdateFields(req.body);
 
         // Guard: prevent admin from demoting themselves
         if (
-            req.params.id === req.user._id.toString() &&
+            id === req.user._id.toString() &&
             sanitizedData.role &&
             sanitizedData.role !== req.user.role
         ) {
@@ -119,7 +119,7 @@ module.exports = {
         // Never add 'password' to allowedFields in sanitizeUpdateFields
         // without switching to findById + save() to ensure hashing runs.
         const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
+            String(id),
             sanitizedData,
             { returnDocument: "after" },
         );
@@ -129,13 +129,13 @@ module.exports = {
     },
 
     deleteUser: async (req, res, next) => {
-        validateObjectId(req.params.id);
+        const id = validateObjectId(req.params.id);
         // Guard: prevent admin from deleting themselves
-        if (req.params.id === req.user._id.toString()) {
+        if (id === req.user._id.toString()) {
             return next(errors.BAD_REQUEST);
         }
 
-        const result = await User.deleteOne({ _id: req.params.id });
+        const result = await User.deleteOne({ _id: String(id) });
         if (result.deletedCount === 0) return next(errors.NOT_FOUND);
         res.json(result);
     },

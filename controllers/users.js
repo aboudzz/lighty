@@ -23,8 +23,8 @@ const getJwtSecret = () => process.env[config.get("jwt.secret_env")];
 
 module.exports = {
     getUser: async (req, res, next) => {
-        validateObjectId(req.params.id);
-        const user = await User.findById(req.params.id);
+        const id = validateObjectId(req.params.id);
+        const user = await User.findById(String(id));
         if (!user) return next(errors.NOT_FOUND);
         res.json(user.getProfile());
     },
