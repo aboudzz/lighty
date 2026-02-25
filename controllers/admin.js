@@ -77,7 +77,7 @@ module.exports = {
     updateUser: async (req, res, next) => {
         const sanitizedData = sanitizeUpdateFields(req.body);
         
-        const updatedUser = await User.findByIdAndUpdate(req.params.id, sanitizedData, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, sanitizedData, { returnDocument: 'after' });
         if (!updatedUser) return next(errors.NOT_FOUND);
         
         res.json(updatedUser.getProfile());
