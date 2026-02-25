@@ -1,0 +1,14 @@
+node_modules
+.git
+coverage
+__tests__
+.env*
+.github
+.vscode
+logs
+mailserver/docker-data
+*.md
+sonar-project.properties
+jest.config.js
+jest.setup.js
+eslint.config.js

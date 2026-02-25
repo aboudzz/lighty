@@ -14,8 +14,13 @@ describe('Errors Utility', () => {
         });
 
         it('should have UNAUTHORIZED error with correct properties', () => {
-            expect(errors.UNAUTHORIZED.status).toBe(403);
+            expect(errors.UNAUTHORIZED.status).toBe(401);
             expect(errors.UNAUTHORIZED.code).toBe('UNAUTHORIZED');
+        });
+
+        it('should have FORBIDDEN error with correct properties', () => {
+            expect(errors.FORBIDDEN.status).toBe(403);
+            expect(errors.FORBIDDEN.code).toBe('FORBIDDEN');
         });
 
         it('should have LINK_EXPIRED error with correct properties', () => {
@@ -36,6 +41,11 @@ describe('Errors Utility', () => {
         it('should have INCORRECT_PASSWORD error with correct properties', () => {
             expect(errors.INCORRECT_PASSWORD.status).toBe(400);
             expect(errors.INCORRECT_PASSWORD.code).toBe('INCORRECT_PASSWORD');
+        });
+
+        it('should have INVALID_CREDENTIALS error with correct properties', () => {
+            expect(errors.INVALID_CREDENTIALS.status).toBe(401);
+            expect(errors.INVALID_CREDENTIALS.code).toBe('INVALID_CREDENTIALS');
         });
     });
 
@@ -157,6 +167,30 @@ describe('Errors Utility', () => {
             expect(mockRes.status).toHaveBeenCalledWith(422);
             expect(mockRes.json).toHaveBeenCalledWith(
                 expect.objectContaining({ code: 'VALIDATION_ERROR' })
+            );
+        });
+
+        it('should map Mongoose CastError to 400', () => {
+            const error = new Error('Cast to ObjectId failed');
+            error.name = 'CastError';
+
+            errors.handler(error, mockReq, mockRes, mockNext);
+
+            expect(mockRes.status).toHaveBeenCalledWith(400);
+            expect(mockRes.json).toHaveBeenCalledWith(
+                expect.objectContaining({ code: 'BAD_REQUEST' })
+            );
+        });
+
+        it('should map Mongoose ValidationError to 400', () => {
+            const error = new Error('Validation failed');
+            error.name = 'ValidationError';
+
+            errors.handler(error, mockReq, mockRes, mockNext);
+
+            expect(mockRes.status).toHaveBeenCalledWith(400);
+            expect(mockRes.json).toHaveBeenCalledWith(
+                expect.objectContaining({ code: 'BAD_REQUEST' })
             );
         });
     });

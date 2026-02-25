@@ -1,7 +1,7 @@
 {
     "server": {
         "host": "localhost",
-        "port": "3000"
+        "port": 3000
     },
     "mongodb": {
         "uri": "mongodb://localhost:27017/lighty"
@@ -18,7 +18,8 @@
         "password_env": "ADMIN_PASSWORD"
     },
     "jwt": {
-        "secret_env": "JWT_SECRET"
+        "secret_env": "JWT_SECRET",
+        "expiresIn": "24h"
     },
     "cors": {
         "origins": ["http://localhost:3000", "http://localhost:3001"]
@@ -28,10 +29,9 @@
         "max": 100
     },
     "app": {
-        "url": "http://localhost:3000"
-    },
-    "datetime": {
-        "format": "ddd mmm dd yyyy HH:MM:ss.l"
+        "url": "http://localhost:3000",
+        "confirmationBaseUrl": "http://localhost:3000",
+        "resetPasswordBaseUrl": "http://localhost:3000"
     },
     "swagger": {
         "generate": true,

@@ -1,15 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const passport = require('passport');
+const passport = require("passport");
 
-const errors = require('../utils/errors');
-const middleware = require('../middlewares/admin');
+const { isAdmin } = require("../utils/auth");
+const middleware = require("../controllers/admin");
 
-const jwtAuth = () => passport.authenticate('jwt', { session: false });
-
-const isAdmin = (req, res, next) => {
-  req.user.role === 'admin' ? next() : next(errors.UNAUTHORIZED);
-};
+const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 router.use(jwtAuth(), isAdmin);
 
@@ -36,8 +32,7 @@ router.use(jwtAuth(), isAdmin);
  *                 count:
  *                   type: integer
  */
-router.route('/users')
-  .get(middleware.getUsers);
+router.route("/users").get(middleware.listUsers);
 
 /**
  * @openapi
@@ -61,7 +56,7 @@ router.route('/users')
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/UserProfile'
- *   put:
+ *   patch:
  *     summary: Update a user by ID
  *     tags: [admin]
  *     security:
@@ -111,9 +106,10 @@ router.route('/users')
  *                 deletedCount:
  *                   type: integer
  */
-router.route('/users/:id')
-  .get(middleware.getUsers)
-  .put(middleware.updateUser)
-  .delete(middleware.deleteUser);
+router
+    .route("/users/:id")
+    .get(middleware.getUser)
+    .patch(middleware.updateUser)
+    .delete(middleware.deleteUser);
 
 module.exports = router;

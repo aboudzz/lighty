@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const config = require('config');
 const User = require('../models/User');
 
 // Mock mongoose connection events

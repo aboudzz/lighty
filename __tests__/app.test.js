@@ -17,6 +17,15 @@ describe('GET /ping', () => {
 	});
 });
 
+describe('GET /health', () => {
+	it('should return health status with db field', async () => {
+		const res = await request(app).get('/health');
+		expect(res.statusCode).toEqual(200);
+		expect(res.body).toHaveProperty('status');
+		expect(res.body).toHaveProperty('db');
+	});
+});
+
 describe('GET /nonexistent', () => {
 	it('should return 404 Not Found', async () => {
 		const res = await request(app).get('/nonexistent');

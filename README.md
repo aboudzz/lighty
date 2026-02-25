@@ -55,33 +55,43 @@ npm run mailserver:up      # Start Docker mail server
 npm run mailserver:setup   # Add sender email account
 npm run mailserver:down    # Stop mail server
 
-# Testing
+# Quality
 npm test                           # Run full suite with coverage
+npm run lint                       # Run ESLint
+npm run generate:openapi           # Generate OpenAPI spec file
 npx jest __tests__/users.test.js   # Run a single test file
 npx jest -t "should authenticate"  # Run tests matching a name pattern
 ```
 
 ## API Endpoints
 
-All endpoints are available under `/api/v1` (and at the root for backward compatibility).
+All endpoints are available under `/api/v1` (legacy mounts at the root are deprecated).
 
 ### Public
 
 | Method | Endpoint                    | Description                  |
 |--------|-----------------------------|------------------------------|
-| GET    | `/ping`                     | Health check                 |
+| GET    | `/ping`                     | Simple ping/pong             |
+| GET    | `/health`                   | Health check with DB status  |
 | POST   | `/api/v1/users/register`    | Register a new user          |
 | GET    | `/api/v1/users/confirm`     | Confirm email (via link)     |
-| POST   | `/api/v1/users/authenticate`| Login, returns JWT token     |
-| POST   | `/api/v1/users/forgotpassword`| Request password reset     |
-| POST   | `/api/v1/users/resetpassword` | Reset password via token   |
-| GET    | `/api/v1/users/:id`        | Get user profile             |
+
+### Auth (rate-limited: 10 req/15min)
+
+| Method | Endpoint                          | Description              |
+|--------|-----------------------------------|--------------------------|
+| POST   | `/api/v1/auth/login`              | Login, returns JWT token |
+| POST   | `/api/v1/auth/forgot-password`    | Request password reset   |
+| POST   | `/api/v1/auth/reset-password`     | Reset password via token |
+| POST   | `/api/v1/auth/update-password`    | Change own password (JWT required) |
+
+Legacy auth routes (`/users/authenticate`, `/users/forgotpassword`, etc.) still work but are deprecated.
 
 ### Authenticated (Bearer token)
 
-| Method | Endpoint                        | Description              |
-|--------|---------------------------------|--------------------------|
-| POST   | `/api/v1/users/updatepassword`  | Change own password      |
+| Method | Endpoint                    | Description              |
+|--------|-----------------------------|--------------------------|
+| GET    | `/api/v1/users/:id`        | Get user profile         |
 
 ### Admin only (Bearer token + admin role)
 
@@ -94,31 +104,36 @@ All endpoints are available under `/api/v1` (and at the root for backward compat
 
 ### API Documentation
 
-Swagger UI is available at `/api-docs` in non-production environments. OpenAPI annotations are defined inline in route and model files.
+Swagger UI is available at `/swagger` in non-production environments. OpenAPI annotations are defined inline in route and model files.
 
 ## Project Structure
 
 ```
 ├── bin/www              # HTTP server entrypoint
+├── bin/generate-openapi.js  # OpenAPI spec generator script
 ├── app.js               # Express app setup (middleware, routes, DB connection)
 ├── config/              # Environment-specific JSON config (default, test, production)
 ├── routes/              # Route definitions and OpenAPI annotations
-├── middlewares/         # Request handlers (validation, DB queries, responses)
+├── controllers/         # Request handlers (validation, DB queries, responses)
 ├── models/              # Mongoose schemas
 ├── services/            # External integrations (email)
-├── utils/               # Shared utilities (errors, validation, JWT strategy)
-├── resources/emails/    # EJS email templates
-└── __tests__/           # Jest test files
+├── utils/               # Shared utilities (errors, validation, JWT strategy, auth)
+├── resources/emails/    # EJS email templates (text + HTML)
+├── __tests__/           # Jest test files
+├── Dockerfile           # Multi-stage production Docker build
+└── eslint.config.js     # ESLint flat config
 ```
 
 ## Features
 
 - **Authentication** — JWT via Passport with registration, email confirmation, and password reset flows
 - **Role-based access** — `admin` and `user` roles; admin routes enforce role checks at the router level
-- **Email integration** — Nodemailer with EJS templates for confirmation and password reset emails
-- **Security** — Helmet, CORS, global rate limiting, input validation and sanitization, bcrypt password hashing
-- **API versioning** — Routes mounted under `/api/v1`
+- **Email integration** — Nodemailer with EJS templates (text + HTML) for confirmation and password reset emails
+- **Security** — Helmet, CORS, global + auth-specific rate limiting, request body size limits, input validation and sanitization, bcrypt password hashing
+- **API versioning** — Routes mounted under `/api/v1` with deprecated legacy mounts
 - **API documentation** — Swagger UI auto-generated from inline OpenAPI annotations
+- **Docker** — Multi-stage Dockerfile for production builds
+- **Linting** — ESLint with flat config
 
 ## License
 

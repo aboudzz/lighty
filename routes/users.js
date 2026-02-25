@@ -1,10 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const passport = require('passport');
+const passport = require("passport");
 
-const middleware = require('../middlewares/users');
+const { authLimiter } = require("../utils/rateLimiters");
+const middleware = require("../controllers/users");
 
-const jwtAuth = () => passport.authenticate('jwt', { session: false });
+const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 /**
  * @openapi
@@ -14,7 +15,7 @@ const jwtAuth = () => passport.authenticate('jwt', { session: false });
  *     tags: [users]
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -23,8 +24,8 @@ const jwtAuth = () => passport.authenticate('jwt', { session: false });
  *               email: *userEmail
  *               password: *userPassword
  *     responses:
- *       200:
- *         description: user found
+ *       201:
+ *         description: user created
  *         content:
  *           application/json:
  *             schema:
@@ -32,7 +33,7 @@ const jwtAuth = () => passport.authenticate('jwt', { session: false });
  *       400:
  *         description: email is already registered
  */
-router.post('/register', middleware.register);
+router.post("/register", authLimiter, middleware.register);
 
 /**
  * @openapi
@@ -63,109 +64,7 @@ router.post('/register', middleware.register);
  *       400:
  *         description: invalid verification
  */
-router.get('/confirm', middleware.confirm);
-
-/**
- * @openapi
- * /users/authenticate:
- *   post:
- *     summary: authenticate user
- *     tags: [users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email: *userEmail
- *               password: *userPassword
- *     responses:
- *       200:
- *         description: user authenticated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserProfileWithToken'
- *       400:
- *         description: email is not registered or incorrect password
- */
-router.post('/authenticate', middleware.authenticate);
-
-/**
- * @openapi
- * /users/forgotpassword:
- *   post:
- *     summary: send reset password email
- *     tags: [users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email: *userEmail
- *     responses:
- *       200:
- *         description: forgot password request received
- */
-router.post('/forgotpassword', middleware.forgotPassword);
-
-/**
- * @openapi
- * /users/resetpassword:
- *   post:
- *     summary: reset password
- *     tags: [users]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               lookup:
- *                 type: string
- *               verify:
- *                 type: string
- *               password: *userPassword
- *     responses:
- *       200:
- *         description: password reset
- *       400:
- *         description: invalid verification
- */
-router.post('/resetpassword', middleware.resetPassword);
-
-/**
- * @openapi
- * /users/updatepassword:
- *   post:
- *     summary: update password
- *     tags: [users]
- *     security:
- *      - jwtAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               oldPassword:
- *                 type: string
- *               newPassword:
- *                 type: string
- *     responses:
- *       200:
- *         description: password updated
- *       400:
- *         description: incorrect old password
- *       401:
- *         description: unauthorized
- */
-router.post('/updatepassword', jwtAuth(), middleware.updatePassword);
+router.get("/confirm", authLimiter, middleware.confirm);
 
 /**
  * @openapi
@@ -173,6 +72,8 @@ router.post('/updatepassword', jwtAuth(), middleware.updatePassword);
  *   get:
  *     summary: get user by id
  *     tags: [users]
+ *     security:
+ *      - jwtAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -189,6 +90,6 @@ router.post('/updatepassword', jwtAuth(), middleware.updatePassword);
  *       404:
  *         description: user not found
  */
-router.get('/:id', middleware.getUser);
+router.get("/:id", jwtAuth(), middleware.getUser);
 
 module.exports = router;

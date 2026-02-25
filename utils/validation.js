@@ -1,5 +1,5 @@
-const validator = require('validator');
-const errors = require('./errors');
+const validator = require("validator");
+const errors = require("./errors");
 
 /**
  * Password validation requirements
@@ -10,7 +10,7 @@ const PASSWORD_REQUIREMENTS = {
     minLowercase: 1,
     minUppercase: 1,
     minNumbers: 1,
-    minSymbols: 0
+    minSymbols: 0,
 };
 
 /**
@@ -19,21 +19,25 @@ const PASSWORD_REQUIREMENTS = {
  * @throws {Error} If password doesn't meet requirements
  */
 const validatePassword = (password) => {
-    if (!password || typeof password !== 'string') {
+    if (!password || typeof password !== "string") {
         throw errors.BAD_REQUEST;
     }
 
     if (password.length < PASSWORD_MIN_LENGTH) {
-        const error = new Error(`Password must be at least ${PASSWORD_MIN_LENGTH} characters long`);
+        const error = new Error(
+            `Password must be at least ${PASSWORD_MIN_LENGTH} characters long`,
+        );
         error.status = 400;
-        error.code = 'WEAK_PASSWORD';
+        error.code = "WEAK_PASSWORD";
         throw error;
     }
 
     if (!validator.isStrongPassword(password, PASSWORD_REQUIREMENTS)) {
-        const error = new Error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+        const error = new Error(
+            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        );
         error.status = 400;
-        error.code = 'WEAK_PASSWORD';
+        error.code = "WEAK_PASSWORD";
         throw error;
     }
 
@@ -46,7 +50,7 @@ const validatePassword = (password) => {
  * @throws {Error} If email is invalid
  */
 const validateEmail = (email) => {
-    if (!email || typeof email !== 'string') {
+    if (!email || typeof email !== "string") {
         throw errors.BAD_REQUEST;
     }
 
@@ -63,12 +67,12 @@ const validateEmail = (email) => {
  * @returns {string} Sanitized name
  */
 const validateName = (name) => {
-    if (!name || typeof name !== 'string') {
+    if (!name || typeof name !== "string") {
         throw errors.BAD_REQUEST;
     }
 
     const sanitized = validator.trim(name);
-    
+
     if (sanitized.length < 1 || sanitized.length > 100) {
         throw errors.BAD_REQUEST;
     }
@@ -81,14 +85,14 @@ const validateName = (name) => {
  * @param {string} role - The role to validate
  * @returns {string} Sanitized role
  */
-const ALLOWED_ROLES = ['admin', 'user'];
+const ALLOWED_ROLES = new Set(["admin", "user"]);
 
 const validateRole = (role) => {
-    if (!role || typeof role !== 'string') {
+    if (!role || typeof role !== "string") {
         throw errors.BAD_REQUEST;
     }
     const sanitized = validator.trim(role);
-    if (!ALLOWED_ROLES.includes(sanitized)) {
+    if (!ALLOWED_ROLES.has(sanitized)) {
         throw errors.BAD_REQUEST;
     }
     return sanitized;
@@ -100,10 +104,29 @@ const validateRole = (role) => {
  * @returns {boolean} Boolean value
  */
 const validateConfirmed = (confirmed) => {
-    if (!(typeof confirmed === 'boolean' || (typeof confirmed === 'string' && validator.isBoolean(confirmed)))) {
+    if (
+        !(
+            typeof confirmed === "boolean" ||
+            (typeof confirmed === "string" && validator.isBoolean(confirmed))
+        )
+    ) {
         throw errors.BAD_REQUEST;
     }
-    return typeof confirmed === 'boolean' ? confirmed : validator.toBoolean(confirmed);
+    return typeof confirmed === "boolean"
+        ? confirmed
+        : validator.toBoolean(confirmed);
+};
+
+/**
+ * Validates a MongoDB ObjectId
+ * @param {string} id - The ID to validate
+ * @returns {string} Validated ID
+ */
+const validateObjectId = (id) => {
+    if (!id || typeof id !== "string" || !validator.isMongoId(id)) {
+        throw errors.BAD_REQUEST;
+    }
+    return id;
 };
 
 module.exports = {
@@ -112,5 +135,6 @@ module.exports = {
     validateName,
     validateRole,
     validateConfirmed,
-    PASSWORD_MIN_LENGTH
+    validateObjectId,
+    PASSWORD_MIN_LENGTH,
 };

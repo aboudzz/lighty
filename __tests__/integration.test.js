@@ -1,5 +1,4 @@
 const request = require('supertest');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
@@ -59,7 +58,7 @@ describe('Integration Tests - User Workflows', () => {
                     password: 'SecurePass123'
                 });
 
-            expect(registerResponse.status).toBe(200);
+            expect(registerResponse.status).toBe(201);
             expect(registerResponse.body.email).toBe('newuser@example.com');
             expect(registerResponse.body.confirmed).toBe(false);
             expect(createdUser.confirmationInfo).toBeDefined();
@@ -117,7 +116,7 @@ describe('Integration Tests - User Workflows', () => {
             User.findOne.mockResolvedValue(testUser);
 
             const response = await request(app)
-                .post('/api/v1/users/authenticate')
+                .post('/api/v1/auth/login')
                 .send({
                     email: 'integration@example.com',
                     password: 'TestPassword123'
@@ -133,7 +132,7 @@ describe('Integration Tests - User Workflows', () => {
             User.findOne.mockResolvedValue(testUser);
 
             const forgotResponse = await request(app)
-                .post('/api/v1/users/forgotpassword')
+                .post('/api/v1/auth/forgot-password')
                 .send({ email: 'integration@example.com' });
 
             expect(forgotResponse.status).toBe(200);
@@ -146,7 +145,7 @@ describe('Integration Tests - User Workflows', () => {
             User.findOne.mockResolvedValue(testUser);
 
             const resetResponse = await request(app)
-                .post('/api/v1/users/resetpassword')
+                .post('/api/v1/auth/reset-password')
                 .send({
                     lookup: lookup,
                     verify: verify,
@@ -175,7 +174,7 @@ describe('Integration Tests - User Workflows', () => {
             const token = jwt.sign({ userId: authenticatedUser._id }, process.env.JWT_SECRET || 'test-secret');
 
             const response = await request(app)
-                .post('/api/v1/users/updatepassword')
+                .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
                 .send({
                     oldPassword: 'TestPassword123',
@@ -184,9 +183,7 @@ describe('Integration Tests - User Workflows', () => {
 
             expect(response.status).toBe(200);
             expect(authenticatedUser.save).toHaveBeenCalled();
-            // Verify password was updated
-            const passwordUpdated = await bcrypt.compare('NewTestPass123', authenticatedUser.password);
-            expect(passwordUpdated).toBe(true);
+            expect(authenticatedUser.password).toBe('NewTestPass123');
         });
 
         it('should reject password update with incorrect old password', async () => {
@@ -207,7 +204,7 @@ describe('Integration Tests - User Workflows', () => {
             const token = jwt.sign({ userId: authenticatedUser._id }, process.env.JWT_SECRET || 'test-secret');
 
             const response = await request(app)
-                .post('/api/v1/users/updatepassword')
+                .post('/api/v1/auth/update-password')
                 .set('Authorization', `Bearer ${token}`)
                 .send({
                     oldPassword: 'WrongPassword123',
@@ -229,14 +226,24 @@ describe('Integration Tests - User Workflows', () => {
         it('should maintain backward compatibility with legacy routes', async () => {
             User.findById.mockResolvedValue(testUser);
 
-            const response = await request(app).get('/users/507f1f77bcf86cd799439011');
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
+
+            const response = await request(app)
+                .get('/users/507f1f77bcf86cd799439011')
+                .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(200);
         });
 
         it('should work with new versioned routes', async () => {
             User.findById.mockResolvedValue(testUser);
 
-            const response = await request(app).get('/api/v1/users/507f1f77bcf86cd799439011');
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
+
+            const response = await request(app)
+                .get('/api/v1/users/507f1f77bcf86cd799439011')
+                .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(200);
         });
     });
@@ -268,22 +275,56 @@ describe('Integration Tests - User Workflows', () => {
         });
 
         it('should return 404 for non-existent user', async () => {
-            User.findById.mockResolvedValue(null);
+            // Return testUser for passport auth, then null for the actual lookup
+            User.findById
+                .mockResolvedValueOnce(testUser)
+                .mockResolvedValueOnce(null);
 
-            const response = await request(app).get('/api/v1/users/nonexistentid');
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
+
+            const response = await request(app)
+                .get('/api/v1/users/507f1f77bcf86cd799439099')
+                .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(404);
+        });
+    });
+
+    describe('JWT Token Expiry', () => {
+        it('should reject an expired JWT token', async () => {
+            const jwt = require('jsonwebtoken');
+            const expiredToken = jwt.sign(
+                { sub: '507f1f77bcf86cd799439011' },
+                process.env.JWT_SECRET || 'test-secret',
+                { expiresIn: '0s' }
+            );
+
+            const response = await request(app)
+                .post('/api/v1/auth/update-password')
+                .set('Authorization', `Bearer ${expiredToken}`)
+                .send({ oldPassword: 'Old123', newPassword: 'New123' });
+
+            expect(response.status).toBe(401);
         });
     });
 
     describe('Rate Limiting', () => {
         it('should apply rate limiting to requests', async () => {
-            // This test verifies rate limiting is configured
-            // Actual rate limit testing would require multiple requests
             const response = await request(app).get('/');
             
-            // Check for rate limit headers
             expect(response.headers['ratelimit-limit']).toBeDefined();
             expect(response.headers['ratelimit-remaining']).toBeDefined();
+        });
+
+        it('should return 429 when rate limit is exceeded', async () => {
+            const config = require('config');
+            const max = config.get('rateLimit.max');
+            // Send requests sequentially so the rate limiter counts accurately
+            for (let i = 0; i < max; i++) {
+                await request(app).get('/ping');
+            }
+            const response = await request(app).get('/ping');
+            expect(response.status).toBe(429);
         });
     });
 });

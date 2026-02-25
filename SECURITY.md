@@ -14,11 +14,15 @@ This application includes the following security features:
 - **Helmet.js Security Headers**: Content Security Policy, HSTS, XSS protection, and more
 - **JWT Authentication**: Secure token-based authentication with Passport.js
 - **Password Strength Validation**: Enforces strong passwords (8+ chars, uppercase, lowercase, numbers)
-- **Global Rate Limiting**: Protection against brute force attacks (configurable in config files)
+- **Global Rate Limiting**: Protection against abuse (configurable in config files)
+- **Auth-Specific Rate Limiting**: Stricter limits on login, registration, and password reset endpoints (10 req/15min)
+- **Request Body Size Limits**: JSON and URL-encoded payloads capped at 100kb
 - **CORS Configuration**: Cross-Origin Resource Sharing with configurable origins
 - **Input Validation & Sanitization**: Protection against injection attacks using validator.js
 - **Hybrid Configuration**: Secrets in .env, settings in config/*.json files
 - **Bcrypt Password Hashing**: Industry-standard password encryption (cost factor 10)
+- **Token Expiry**: Confirmation links expire after 24 hours, password reset links after 1 hour
+- **Protected Endpoints**: User profile retrieval requires JWT authentication
 
 ## Security Best Practices
 
@@ -49,6 +53,7 @@ This application includes the following security features:
 7. **Rate Limiting**: Configure appropriate rate limits in `config/default.json` or `config/production.json`:
    - `rateLimit.windowMs` (default: 600000ms = 10 minutes)
    - `rateLimit.max` (default: 100 requests per window)
+   - Auth endpoints have additional stricter rate limiting (10 requests per 15 minutes)
 
 ### Production Deployment Checklist
 

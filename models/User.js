@@ -1,9 +1,7 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const debug = require('debug')('debug:Users');
-const { validatePassword } = require('../utils/validation');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-const roles = ['admin', 'user'];
+const roles = ["admin", "user"];
 
 /**
  * @openapi
@@ -34,70 +32,47 @@ const roles = ['admin', 'user'];
  *         confirmed: *userConfirmed
  *         token: *userToken
  */
-const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true, unique: true },
-    password: { type: String, required: true },
-    confirmed: { type: Boolean, default: false },
-    role: { type: String, enum: roles, default: 'user' },
-    confirmationInfo: {
-        lookup: String,
-        verify: String,
-        URL: String
+const UserSchema = new mongoose.Schema(
+    {
+        name: { type: String, required: true, trim: true },
+        email: { type: String, required: true, trim: true, unique: true },
+        password: { type: String, required: true },
+        confirmed: { type: Boolean, default: false },
+        role: { type: String, enum: roles, default: "user" },
+        confirmationInfo: {
+            lookup: String,
+            verify: String,
+            expire: Date,
+            URL: String,
+        },
+        resetPasswordInfo: {
+            lookup: String,
+            verify: String,
+            expire: Date,
+            URL: String,
+        },
     },
-    resetPasswordInfo: {
-        lookup: String,
-        verify: String,
-        expire: Date,
-        URL: String
+    { timestamps: true },
+);
+
+UserSchema.pre("save", async function () {
+    if (this.isModified("password")) {
+        this.password = await bcrypt.hash(this.password, 10);
     }
 });
 
 UserSchema.methods.getProfile = function () {
-    const profile = this.toObject();
-    profile._id = profile._id.toString();
-    delete profile.password;
-    delete profile.confirmationInfo;
-    delete profile.resetPasswordInfo;
-    return profile;
+    const obj = this.toObject();
+    return {
+        _id: obj._id.toString(),
+        name: obj.name,
+        email: obj.email,
+        role: obj.role,
+        confirmed: obj.confirmed,
+        createdAt: obj.createdAt,
+        updatedAt: obj.updatedAt,
+    };
 };
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 module.exports = User;
-
-mongoose.connection.on('connected', () => {
-    // create admin user if not existed
-    const config = require('config');
-    const adminEmail = config.get('admin.email');
-    const adminPassword = process.env[config.get('admin.password_env')];
-    
-    User.findOne({ email: adminEmail }).then(adminUser => {
-        if (!adminUser) {
-            if (!adminPassword) {
-                console.warn(`WARNING: ${config.get('admin.password_env')} environment variable not set. Admin user will not be created.`);
-                console.warn('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
-                return;
-            }
-            try {
-                validatePassword(adminPassword);
-            } catch {
-                console.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
-                return;
-            }
-            bcrypt.hash(adminPassword, 10).then(hash => {
-                debug('Creating admin user');
-                User.create({
-                    name: 'Admin',
-                    email: adminEmail,
-                    password: hash,
-                    confirmed: true,
-                    role: 'admin'
-                }).catch(err => {
-                    console.error('Failed to create admin user:', err.message);
-                });
-            });
-        }
-    }).catch(err => {
-        debug('Error checking for admin user:', err.message);
-    });
-});

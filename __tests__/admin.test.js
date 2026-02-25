@@ -15,19 +15,22 @@ jest.mock('../models/User', () => {
 const userAdmin = new User({ name: 'admin', email: 'admin', confirmed: true, role: 'admin' });
 
 // Mock the passport middleware to simulate an authenticated admin user
-passport.authenticate = jest.fn((strategy, options, callback) => (req, res, next) => {
+passport.authenticate = jest.fn((_strategy, _options, _callback) => (req, res, next) => {
     req.user = userAdmin;
     next();
 });
 
 const app = require('../app');
 
+const validId = '507f1f77bcf86cd799439011';
+const validId2 = '507f1f77bcf86cd799439012';
+
 describe('GET /admin/users', () => {
     it('should return a user profile when id is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
         User.findById.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).get('/admin/users/1234567891');
+        const res = await request(app).get(`/admin/users/${validId}`);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual(userJohnDoe.getProfile());
@@ -57,13 +60,54 @@ describe('GET /admin/users', () => {
     it('should return 404 when user is not found', async () => {
         User.findById.mockResolvedValue(null);
 
-        const res = await request(app).get('/admin/users/123');
+        const res = await request(app).get(`/admin/users/${validId2}`);
 
         expect(res.status).toBe(404);
     });
+
+    it('should filter users when search query parameter is provided', async () => {
+        let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
+        User.find.mockReturnValue({
+            sort: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            skip: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            countDocuments: jest.fn().mockResolvedValue(1),
+            exec: jest.fn().mockResolvedValue([userJohnDoe]),
+        });
+
+        const res = await request(app).get('/admin/users?search=John');
+
+        expect(res.status).toBe(200);
+        expect(User.find).toHaveBeenCalledWith({
+            $or: [
+                { name: expect.any(RegExp) },
+                { email: expect.any(RegExp) }
+            ]
+        });
+    });
+
+    it('should sort users when sort query parameter is provided', async () => {
+        let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
+        let userJaneSmith = new User({ name: 'Jane Smith', email: 'jane@example.com' });
+        const mockFind = {
+            sort: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            skip: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            countDocuments: jest.fn().mockResolvedValue(2),
+            exec: jest.fn().mockResolvedValue([userJaneSmith, userJohnDoe]),
+        };
+        User.find.mockReturnValue(mockFind);
+
+        const res = await request(app).get('/admin/users?sort=name');
+
+        expect(res.status).toBe(200);
+        expect(mockFind.sort).toHaveBeenCalledWith({ name: 1 });
+    });
 });
 
-describe('PUT /admin/users/:id', () => {
+describe('PATCH /admin/users/:id', () => {
     it('should update a user profile when valid data is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
         User.findByIdAndUpdate.mockImplementation((id, data) => {
@@ -74,7 +118,7 @@ describe('PUT /admin/users/:id', () => {
             return userJohnDoe;
         });
 
-        const res = await request(app).put('/admin/users/1234567891')
+        const res = await request(app).patch(`/admin/users/${validId}`)
             .send({ name: 'John Johanson Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user' });
 
         expect(res.status).toBe(200);
@@ -82,13 +126,13 @@ describe('PUT /admin/users/:id', () => {
     });
 
     it('should return 400 when null request is provided', async () => {
-        const res = await request(app).put('/admin/users/123').send(null);
+        const res = await request(app).patch(`/admin/users/${validId2}`).send(null);
 
         expect(res.status).toBe(400);
     });
 
     it('should return 400 bad request when invalid data is provided', async () => {
-        const res = await request(app).put('/admin/users/1234567891')
+        const res = await request(app).patch(`/admin/users/${validId}`)
             .send({ name: 'John Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user', password: 'trying to change it' });
 
         expect(res.status).toBe(400);
@@ -97,7 +141,7 @@ describe('PUT /admin/users/:id', () => {
     it('should return 404 when user is not found', async () => {
         User.findByIdAndUpdate.mockResolvedValue(null);
 
-        const res = await request(app).put('/admin/users/123').send({});
+        const res = await request(app).patch(`/admin/users/${validId2}`).send({});
 
         expect(res.status).toBe(404);
     });
@@ -107,9 +151,42 @@ describe('DELETE /admin/users/:id', () => {
     it('should delete a user when id is provided', async () => {
         User.deleteOne.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
 
-        const res = await request(app).delete('/admin/users/1234567891');
+        const res = await request(app).delete(`/admin/users/${validId}`);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ acknowledged: true, deletedCount: 1 });
+    });
+
+    it('should return 404 when user to delete is not found', async () => {
+        User.deleteOne.mockResolvedValue({ acknowledged: true, deletedCount: 0 });
+
+        const res = await request(app).delete(`/admin/users/${validId}`);
+
+        expect(res.status).toBe(404);
+    });
+
+    it('should return 400 when admin tries to delete themselves', async () => {
+        const res = await request(app).delete(`/admin/users/${userAdmin._id}`);
+
+        expect(res.status).toBe(400);
+    });
+});
+
+describe('PATCH /admin/users/:id - self-demotion guard', () => {
+    it('should return 400 when admin tries to change their own role', async () => {
+        const res = await request(app).patch(`/admin/users/${userAdmin._id}`)
+            .send({ role: 'user' });
+
+        expect(res.status).toBe(400);
+    });
+
+    it('should allow admin to update their own non-role fields', async () => {
+        const updatedAdmin = new User({ name: 'Updated Admin', email: 'admin@new.com', confirmed: true, role: 'admin' });
+        User.findByIdAndUpdate.mockResolvedValue(updatedAdmin);
+
+        const res = await request(app).patch(`/admin/users/${userAdmin._id}`)
+            .send({ name: 'Updated Admin' });
+
+        expect(res.status).toBe(200);
     });
 });
