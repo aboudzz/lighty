@@ -1,19 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const passport = require('passport');
-const rateLimit = require('express-rate-limit');
+const passport = require("passport");
+const rateLimit = require("express-rate-limit");
 
-const middleware = require('../controllers/users');
+const middleware = require("../controllers/users");
 
-const jwtAuth = () => passport.authenticate('jwt', { session: false });
+const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 // Stricter rate limiting for auth endpoints (brute-force protection)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10,
     message: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: 'Too many attempts, please try again later.'
+        code: "RATE_LIMIT_EXCEEDED",
+        message: "Too many attempts, please try again later.",
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -27,7 +27,7 @@ const authLimiter = rateLimit({
  *     tags: [users]
  *     requestBody:
  *       required: true
- *       content: 
+ *       content:
  *         application/json:
  *           schema:
  *             type: object
@@ -45,7 +45,7 @@ const authLimiter = rateLimit({
  *       400:
  *         description: email is already registered
  */
-router.post('/register', authLimiter, middleware.register);
+router.post("/register", authLimiter, middleware.register);
 
 /**
  * @openapi
@@ -76,7 +76,7 @@ router.post('/register', authLimiter, middleware.register);
  *       400:
  *         description: invalid verification
  */
-router.get('/confirm', authLimiter, middleware.confirm);
+router.get("/confirm", authLimiter, middleware.confirm);
 
 /**
  * @openapi
@@ -84,6 +84,8 @@ router.get('/confirm', authLimiter, middleware.confirm);
  *   get:
  *     summary: get user by id
  *     tags: [users]
+ *     security:
+ *      - jwtAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -100,6 +102,6 @@ router.get('/confirm', authLimiter, middleware.confirm);
  *       404:
  *         description: user not found
  */
-router.get('/:id', jwtAuth(), middleware.getUser);
+router.get("/:id", jwtAuth(), middleware.getUser);
 
 module.exports = router;
