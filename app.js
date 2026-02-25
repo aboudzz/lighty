@@ -97,7 +97,16 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-app.use(pinoHttp({ logger, autoLogging: process.env.NODE_ENV !== 'test' }));
+app.use(pinoHttp({
+    logger,
+    autoLogging: process.env.NODE_ENV !== 'test',
+    customSuccessMessage(req, res, responseTime) {
+        return `[${req.method}]  ${req.url} ${res.statusCode} ${res.getHeader('content-length') || '-'} - ${req.socket.remoteAddress} - ${responseTime} ms`;
+    },
+    customErrorMessage(req, res, error) {
+        return `[${req.method}]  ${req.url} ${res.statusCode} - ${req.socket.remoteAddress} - ${error.message}`;
+    }
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
