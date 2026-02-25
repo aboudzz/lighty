@@ -15,9 +15,6 @@ const routes = require('./routes/index');
 const errors = require('./utils/errors');
 const jwtStrategy = require('./utils/jwtStrategy');
 
-globalThis.Promise = require('bluebird');
-
-mongoose.Promise = globalThis.Promise;
 mongoose.set('strictQuery', false);
 
 // Validate critical environment variables
