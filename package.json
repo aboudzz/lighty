@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "lighty RESTful Stateless API boilerplate",
   "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "mongo:deploy": "docker run -d -p 27017:27017 --name=mongo -v mongo_data:/data/db -v mongo_config:/data/configdb mongo:latest",
     "mongo:start": "docker start mongo",
@@ -33,15 +36,15 @@
     "url": "git://github.com/aboudzz/lighty.git"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.2",
-    "config": "^4.1.1",
+    "bcryptjs": "^3.0.3",
+    "config": "^4.4.0",
     "console-stamp": "^3.1.2",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
     "ejs": "^3.1.10",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.1.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
     "mongoose": "^9.2.2",
@@ -54,12 +57,12 @@
     "validator": "^13.15.26"
   },
   "devDependencies": {
-    "baseline-browser-mapping": "^2.9.0",
+    "baseline-browser-mapping": "^2.10.0",
     "jest": "^30.2.0",
     "jest-sonar-reporter": "^2.0.0",
     "run-script-os": "^1.1.6",
     "sonar-scanner": "^3.1.0",
-    "supertest": "^7.1.4",
+    "supertest": "^7.2.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   }

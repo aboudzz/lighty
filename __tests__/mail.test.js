@@ -2,36 +2,31 @@ const mailService = require('../services/mail');
 const ejs = require('ejs');
 const nodemailer = require('nodemailer');
 
-jest.mock('nodemailer', () => ({
-    createTransport: jest.fn().mockReturnValue({
+jest.mock('nodemailer', () => {
+    const mockTransporter = {
         verify: jest.fn((cb) => cb(null, true)),
         sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' }),
-        close: jest.fn().mockResolvedValue(undefined)
-    })
-}));
+    };
+    return {
+        createTransport: jest.fn().mockReturnValue(mockTransporter),
+        _mockTransporter: mockTransporter,
+    };
+});
 jest.mock('ejs');
 
 describe('Mail Service', () => {
     let mockTransporter;
     let mockSendMail;
-    let mockClose;
     let consoleErrorSpy;
 
     beforeEach(() => {
-        // Reset mocks
         jest.clearAllMocks();
-
-        // Suppress console.error for expected errors in tests
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-        // Setup nodemailer mock
-        mockSendMail = jest.fn().mockResolvedValue({ messageId: 'test-message-id' });
-        mockClose = jest.fn().mockResolvedValue(undefined);
-        mockTransporter = {
-            sendMail: mockSendMail,
-            close: mockClose
-        };
-        nodemailer.createTransport.mockReturnValue(mockTransporter);
+        // Use the shared mock transporter instance
+        mockTransporter = nodemailer._mockTransporter;
+        mockSendMail = mockTransporter.sendMail;
+        mockSendMail.mockResolvedValue({ messageId: 'test-message-id' });
 
         // Setup EJS mock
         ejs.renderFile.mockImplementation((file, data, callback) => {
@@ -69,7 +64,6 @@ describe('Mail Service', () => {
                     text: expect.any(String)
                 })
             );
-            expect(mockClose).toHaveBeenCalled();
         });
 
         it('should generate correct confirmation link', async () => {
@@ -134,7 +128,6 @@ describe('Mail Service', () => {
                     text: expect.any(String)
                 })
             );
-            expect(mockClose).toHaveBeenCalled();
         });
 
         it('should generate correct reset password link', async () => {
@@ -169,9 +162,6 @@ describe('Mail Service', () => {
 
             await expect(mailService.sendResetPassword(user)).rejects.toThrow('SMTP error');
             
-            // Verify transporter was closed even after error
-            expect(mockClose).toHaveBeenCalled();
-            
             // Verify errors were logged
             expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to send email:', 'SMTP error');
             expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -195,13 +185,16 @@ describe('Mail Service', () => {
                 renderFile: jest.fn().mockResolvedValue('Email content')
             }));
             
-            jest.doMock('nodemailer', () => ({
-                createTransport: jest.fn().mockReturnValue({
+            jest.doMock('nodemailer', () => {
+                const mt = {
                     verify: jest.fn((cb) => cb(null, true)),
                     sendMail: jest.fn().mockResolvedValue({ messageId: 'test' }),
-                    close: jest.fn()
-                })
-            }));
+                };
+                return {
+                    createTransport: jest.fn().mockReturnValue(mt),
+                    _mockTransporter: mt,
+                };
+            });
             
             const mailServiceNoPass = require('../services/mail');
 

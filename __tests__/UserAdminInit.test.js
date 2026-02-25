@@ -1,36 +1,25 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const config = require('config');
 
-// Store the actual connection.on
-const actualConnectionOn = mongoose.connection.on.bind(mongoose.connection);
-let capturedHandler = null;
-
-// Replace connection.on to capture the handler
-mongoose.connection.on = jest.fn((event, handler) => {
-    if (event === 'connected') {
-        capturedHandler = handler;
-    }
-    return actualConnectionOn(event, handler);
+// Mock User model before requiring initAdmin
+jest.mock('../models/User', () => {
+    const mockUser = {
+        findOne: jest.fn(),
+        create: jest.fn(),
+    };
+    return mockUser;
 });
 
-// Now require User model which will register the handler
 const User = require('../models/User');
+const initAdmin = require('../utils/initAdmin');
 
-describe('User Model - Admin Initialization', () => {
-    let mockFindOne;
-    let mockCreate;
-    let mockHash;
+describe('Admin Initialization', () => {
     let originalEnv;
     let consoleWarnSpy;
     let consoleErrorSpy;
-    let debugSpy;
 
     beforeAll(() => {
-        // Save original environment
         originalEnv = process.env.ADMIN_PASSWORD;
-        
-        // Spy on console methods
         consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     });
@@ -39,58 +28,38 @@ describe('User Model - Admin Initialization', () => {
         jest.clearAllMocks();
         consoleWarnSpy.mockClear();
         consoleErrorSpy.mockClear();
-        
-        // Mock User model methods
-        mockFindOne = jest.fn();
-        mockCreate = jest.fn();
-        mockHash = jest.fn();
-
-        User.findOne = mockFindOne;
-        User.create = mockCreate;
-
-        // Mock bcrypt
-        bcrypt.hash = mockHash;
     });
 
     afterAll(() => {
-        // Restore environment
         if (originalEnv) {
             process.env.ADMIN_PASSWORD = originalEnv;
         } else {
             delete process.env.ADMIN_PASSWORD;
         }
-        
         consoleWarnSpy.mockRestore();
         consoleErrorSpy.mockRestore();
     });
 
     describe('Admin user creation on database connection', () => {
-        it('should register a connected event handler', () => {
-            expect(capturedHandler).toBeDefined();
-            expect(typeof capturedHandler).toBe('function');
+        it('should be a callable function', () => {
+            expect(typeof initAdmin).toBe('function');
         });
 
         it('should create admin user when admin does not exist and password is set', async () => {
             const adminEmail = config.get('admin.email');
             process.env.ADMIN_PASSWORD = 'TestAdminPass123';
             
-            // Mock implementations
-            mockFindOne.mockResolvedValue(null); // Admin doesn't exist
-            mockHash.mockResolvedValue('hashedAdminPassword');
-            mockCreate.mockResolvedValue({ email: adminEmail, role: 'admin' });
+            User.findOne.mockResolvedValue(null);
+            User.create.mockResolvedValue({ email: adminEmail, role: 'admin' });
 
-            // Trigger the connected event
-            await capturedHandler();
-
-            // Wait for promises to resolve
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockFindOne).toHaveBeenCalledWith({ email: adminEmail });
-            expect(mockHash).toHaveBeenCalledWith('TestAdminPass123', 10);
-            expect(mockCreate).toHaveBeenCalledWith({
+            expect(User.findOne).toHaveBeenCalledWith({ email: adminEmail });
+            expect(User.create).toHaveBeenCalledWith({
                 name: 'Admin',
                 email: adminEmail,
-                password: 'hashedAdminPassword',
+                password: 'TestAdminPass123',
                 confirmed: true,
                 role: 'admin'
             });
@@ -100,53 +69,44 @@ describe('User Model - Admin Initialization', () => {
             const adminEmail = config.get('admin.email');
             process.env.ADMIN_PASSWORD = 'TestAdminPass123';
             
-            // Mock admin user already exists
-            mockFindOne.mockResolvedValue({ 
+            User.findOne.mockResolvedValue({ 
                 email: adminEmail, 
                 role: 'admin',
                 confirmed: true 
             });
 
-            await capturedHandler();
-
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockFindOne).toHaveBeenCalledWith({ email: adminEmail });
-            expect(mockHash).not.toHaveBeenCalled();
-            expect(mockCreate).not.toHaveBeenCalled();
+            expect(User.findOne).toHaveBeenCalledWith({ email: adminEmail });
+            expect(User.create).not.toHaveBeenCalled();
         });
 
         it('should warn when admin password is not set', async () => {
             const adminEmail = config.get('admin.email');
             delete process.env.ADMIN_PASSWORD;
             
-            mockFindOne.mockResolvedValue(null); // Admin doesn't exist
+            User.findOne.mockResolvedValue(null);
 
-            await capturedHandler();
-
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockFindOne).toHaveBeenCalledWith({ email: adminEmail });
+            expect(User.findOne).toHaveBeenCalledWith({ email: adminEmail });
             expect(consoleWarnSpy).toHaveBeenCalledWith('WARNING: ADMIN_PASSWORD environment variable not set. Admin user will not be created.');
             expect(consoleWarnSpy).toHaveBeenCalledWith('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
-            expect(mockHash).not.toHaveBeenCalled();
-            expect(mockCreate).not.toHaveBeenCalled();
+            expect(User.create).not.toHaveBeenCalled();
         });
 
         it('should handle errors when creating admin user', async () => {
-            const adminEmail = config.get('admin.email');
             process.env.ADMIN_PASSWORD = 'TestAdminPass123';
             
-            const createError = new Error('Database error');
-            mockFindOne.mockResolvedValue(null);
-            mockHash.mockResolvedValue('hashedPassword');
-            mockCreate.mockRejectedValue(createError);
+            User.findOne.mockResolvedValue(null);
+            User.create.mockRejectedValue(new Error('Database error'));
 
-            await capturedHandler();
-
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockCreate).toHaveBeenCalled();
+            expect(User.create).toHaveBeenCalled();
             expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to create admin user:', 'Database error');
         });
 
@@ -154,44 +114,37 @@ describe('User Model - Admin Initialization', () => {
             const adminEmail = config.get('admin.email');
             process.env.ADMIN_PASSWORD = 'TestAdminPass123';
             
-            const findError = new Error('Database connection error');
-            mockFindOne.mockRejectedValue(findError);
+            User.findOne.mockRejectedValue(new Error('Database connection error'));
 
-            await capturedHandler();
-
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockFindOne).toHaveBeenCalledWith({ email: adminEmail });
-            expect(mockCreate).not.toHaveBeenCalled();
-            // The error is caught and logged via debug, so we just verify findOne was called
+            expect(User.findOne).toHaveBeenCalledWith({ email: adminEmail });
+            expect(User.create).not.toHaveBeenCalled();
         });
 
         it('should use correct admin email from config', async () => {
             const adminEmail = config.get('admin.email');
             process.env.ADMIN_PASSWORD = 'TestAdminPass123';
             
-            mockFindOne.mockResolvedValue({ email: adminEmail });
+            User.findOne.mockResolvedValue({ email: adminEmail });
 
-            await capturedHandler();
-
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockFindOne).toHaveBeenCalledWith({ email: adminEmail });
+            expect(User.findOne).toHaveBeenCalledWith({ email: adminEmail });
         });
 
-        it('should hash password with correct salt rounds', async () => {
-            const adminEmail = config.get('admin.email');
-            process.env.ADMIN_PASSWORD = 'TestAdminPass123';
+        it('should reject weak admin passwords', async () => {
+            process.env.ADMIN_PASSWORD = 'weak';
             
-            mockFindOne.mockResolvedValue(null);
-            mockHash.mockResolvedValue('hashedPassword');
-            mockCreate.mockResolvedValue({});
+            User.findOne.mockResolvedValue(null);
 
-            await capturedHandler();
-
+            await initAdmin();
             await new Promise(resolve => setImmediate(resolve));
 
-            expect(mockHash).toHaveBeenCalledWith('TestAdminPass123', 10);
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
+            expect(User.create).not.toHaveBeenCalled();
         });
     });
 });

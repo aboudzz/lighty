@@ -1,4 +1,4 @@
-const fs = require('node:fs');
+const fs = require('node:fs/promises');
 const express = require('express');
 const router = express.Router();
 const swaggerUi = require('swagger-ui-express');
@@ -12,8 +12,10 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 const generate = config.get('swagger.generate');
 if (generate) {
-    const path = config.get('swagger.path');
-    fs.writeFileSync(path, yaml.dump(swaggerDocs));
+    const filePath = config.get('swagger.path');
+    fs.writeFile(filePath, yaml.dump(swaggerDocs)).catch(err => {
+        console.error('Failed to write OpenAPI spec:', err.message);
+    });
 }
 
 router.use('/', swaggerUi.serve);

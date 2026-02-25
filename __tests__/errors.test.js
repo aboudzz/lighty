@@ -14,8 +14,13 @@ describe('Errors Utility', () => {
         });
 
         it('should have UNAUTHORIZED error with correct properties', () => {
-            expect(errors.UNAUTHORIZED.status).toBe(403);
+            expect(errors.UNAUTHORIZED.status).toBe(401);
             expect(errors.UNAUTHORIZED.code).toBe('UNAUTHORIZED');
+        });
+
+        it('should have FORBIDDEN error with correct properties', () => {
+            expect(errors.FORBIDDEN.status).toBe(403);
+            expect(errors.FORBIDDEN.code).toBe('FORBIDDEN');
         });
 
         it('should have LINK_EXPIRED error with correct properties', () => {
@@ -36,6 +41,11 @@ describe('Errors Utility', () => {
         it('should have INCORRECT_PASSWORD error with correct properties', () => {
             expect(errors.INCORRECT_PASSWORD.status).toBe(400);
             expect(errors.INCORRECT_PASSWORD.code).toBe('INCORRECT_PASSWORD');
+        });
+
+        it('should have INVALID_CREDENTIALS error with correct properties', () => {
+            expect(errors.INVALID_CREDENTIALS.status).toBe(401);
+            expect(errors.INVALID_CREDENTIALS.code).toBe('INVALID_CREDENTIALS');
         });
     });
 

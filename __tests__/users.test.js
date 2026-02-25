@@ -119,22 +119,22 @@ describe('POST /users/authenticate', () => {
         expect(res.body).toEqual(userJohnDoe.getProfile());
     });
 
-    it('should return 400 when incorrect password', async () => {
+    it('should return 401 when incorrect password', async () => {
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/users/authenticate')
             .send({email: 'john@example.com', password: 'WrongPass123'});
         
-        expect(res.statusCode).toEqual(400);
+        expect(res.statusCode).toEqual(401);
     });
 
-    it('should return 400 when email not registered', async () => {
+    it('should return 401 when email not registered', async () => {
         User.findOne.mockResolvedValue(null);
         
         const res = await request(app).post('/users/authenticate')
             .send({email: 'jane@example.com', password: validPassword});
 
-        expect(res.statusCode).toEqual(400);
+        expect(res.statusCode).toEqual(401);
     });
 });
 
@@ -173,8 +173,7 @@ describe('POST /users/updatepassword', () => {
             .send({ oldPassword: validPassword, newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(200);
-        expect(userJohnDoe.password).not.toEqual(hash);
-        expect(bcrypt.compareSync('NewStrongPass123', userJohnDoe.password)).toBeTruthy();
+        expect(userJohnDoe.password).toEqual('NewStrongPass123');
     });
 
     it('should return 400 when incorrect password', async () => {
@@ -185,7 +184,7 @@ describe('POST /users/updatepassword', () => {
             .send({ oldPassword: 'WrongPass123', newPassword: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(400);
-        expect(bcrypt.compareSync(validPassword, userJohnDoe.password)).toBeTruthy();
+        expect(userJohnDoe.password).toEqual(hash);
     });
 
     it('should return 401 when user is not authenticated', async () => {
@@ -210,9 +209,8 @@ describe('POST /users/resetpassword', () => {
             .send({ lookup: 'lookup', verify: 'verify', password: 'NewStrongPass123' });
 
         expect(res.statusCode).toEqual(200);
-        expect(userJohnDoe.password).not.toEqual(hash);
+        expect(userJohnDoe.password).toEqual('NewStrongPass123');
         expect(userJohnDoe.resetPasswordInfo.lookup).not.toBeTruthy();
-        expect(bcrypt.compareSync('NewStrongPass123', userJohnDoe.password)).toBeTruthy();
     });
 
     it('should return 400 when bad request', async () => {

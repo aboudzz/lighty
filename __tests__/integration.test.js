@@ -184,9 +184,7 @@ describe('Integration Tests - User Workflows', () => {
 
             expect(response.status).toBe(200);
             expect(authenticatedUser.save).toHaveBeenCalled();
-            // Verify password was updated
-            const passwordUpdated = await bcrypt.compare('NewTestPass123', authenticatedUser.password);
-            expect(passwordUpdated).toBe(true);
+            expect(authenticatedUser.password).toBe('NewTestPass123');
         });
 
         it('should reject password update with incorrect old password', async () => {

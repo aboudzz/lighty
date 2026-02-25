@@ -8,16 +8,16 @@ const service = config.get('mail.service');
 const port = config.get('mail.port');
 const secure = config.get('mail.secure');
 const sender = config.get('mail.sender');
+const tlsOptions = {
+    rejectUnauthorized: process.env.NODE_ENV === 'production'
+};
 
 // verify mail server connection
 const transporter = nodemailer.createTransport({
     host: service,
     port: port,
     secure: secure,
-    tls: {
-        // Disable certificate validation only in non-production environments (e.g., local dev with self-signed certs)
-        rejectUnauthorized: process.env.NODE_ENV === 'production'
-    }
+    tls: tlsOptions
 });
 
 transporter.verify((error, success) => {
@@ -34,27 +34,35 @@ transporter.verify((error, success) => {
     }
 });
 
+let authTransporter = null;
 
-const send = (to, subject, text, html) => {
+const getAuthTransporter = () => {
     const pass = process.env[config.get('mail.sender_password_env')];
     if (!pass) {
-        const error = new Error('MAIL_SENDER_PASSWORD not configured. Cannot send email.');
-        debug('Email send failed:', error.message);
-        return Promise.reject(error);
+        throw new Error('MAIL_SENDER_PASSWORD not configured. Cannot send email.');
+    }
+    if (!authTransporter) {
+        authTransporter = nodemailer.createTransport({
+            host: service,
+            port: port,
+            secure: secure,
+            auth: { user: sender, pass: pass },
+            tls: tlsOptions
+        });
+    }
+    return authTransporter;
+};
+
+const send = (to, subject, text, html) => {
+    let transport;
+    try {
+        transport = getAuthTransporter();
+    } catch (err) {
+        debug('Email send failed:', err.message);
+        return Promise.reject(err);
     }
 
-    const transporter = nodemailer.createTransport({
-        host: service,
-        port: port,
-        secure: secure,
-        auth: { user: sender, pass: pass },
-        tls: {
-            // Disable certificate validation only in non-production environments (e.g., local dev with self-signed certs)
-            rejectUnauthorized: process.env.NODE_ENV === 'production'
-        }
-    });
-
-    return transporter.sendMail({ from: sender, to, subject, text, html })
+    return transport.sendMail({ from: sender, to, subject, text, html })
         .then(info => {
             debug('Email sent successfully:', info.messageId);
             return info;
@@ -63,8 +71,7 @@ const send = (to, subject, text, html) => {
             console.error('Failed to send email:', err.message);
             debug('Email error details:', err);
             throw err;
-        })
-        .finally(() => transporter.close());
+        });
 };
 
 const mailer = {

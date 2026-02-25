@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const debug = require('debug')('debug:Users');
-const { validatePassword } = require('../utils/validation');
 
 const roles = ['admin', 'user'];
 
@@ -51,6 +49,12 @@ const UserSchema = new mongoose.Schema({
         expire: Date,
         URL: String
     }
+}, { timestamps: true });
+
+UserSchema.pre('save', async function () {
+    if (this.isModified('password')) {
+        this.password = await bcrypt.hash(this.password, 10);
+    }
 });
 
 UserSchema.methods.getProfile = function () {
@@ -59,45 +63,9 @@ UserSchema.methods.getProfile = function () {
     delete profile.password;
     delete profile.confirmationInfo;
     delete profile.resetPasswordInfo;
+    delete profile.__v;
     return profile;
 };
 
 const User = mongoose.model('User', UserSchema);
 module.exports = User;
-
-mongoose.connection.on('connected', () => {
-    // create admin user if not existed
-    const config = require('config');
-    const adminEmail = config.get('admin.email');
-    const adminPassword = process.env[config.get('admin.password_env')];
-    
-    User.findOne({ email: adminEmail }).then(adminUser => {
-        if (!adminUser) {
-            if (!adminPassword) {
-                console.warn(`WARNING: ${config.get('admin.password_env')} environment variable not set. Admin user will not be created.`);
-                console.warn('Set ADMIN_PASSWORD environment variable to create admin user on startup.');
-                return;
-            }
-            try {
-                validatePassword(adminPassword);
-            } catch {
-                console.error('Admin password does not meet strength requirements (8+ chars, uppercase, lowercase, number). Admin user will not be created.');
-                return;
-            }
-            bcrypt.hash(adminPassword, 10).then(hash => {
-                debug('Creating admin user');
-                User.create({
-                    name: 'Admin',
-                    email: adminEmail,
-                    password: hash,
-                    confirmed: true,
-                    role: 'admin'
-                }).catch(err => {
-                    console.error('Failed to create admin user:', err.message);
-                });
-            });
-        }
-    }).catch(err => {
-        debug('Error checking for admin user:', err.message);
-    });
-});

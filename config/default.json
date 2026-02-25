@@ -18,7 +18,8 @@
         "password_env": "ADMIN_PASSWORD"
     },
     "jwt": {
-        "secret_env": "JWT_SECRET"
+        "secret_env": "JWT_SECRET",
+        "expiresIn": "24h"
     },
     "cors": {
         "origins": ["http://localhost:3000", "http://localhost:3001"]

@@ -14,6 +14,7 @@ const cors = require('cors');
 const routes = require('./routes/index');
 const errors = require('./utils/errors');
 const jwtStrategy = require('./utils/jwtStrategy');
+const initAdmin = require('./utils/initAdmin');
 
 mongoose.set('strictQuery', false);
 
@@ -36,6 +37,7 @@ if (process.env.NODE_ENV !== 'test' && mongoose.connection.readyState === 0) {
 /* istanbul ignore next */
 mongoose.connection.on('connected', () => {
     console.info(`Connected to database`);
+    initAdmin();
 });
 /* istanbul ignore next */
 mongoose.connection.on('error', (err) => {
