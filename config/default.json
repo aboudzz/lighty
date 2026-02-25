@@ -31,9 +31,6 @@
     "app": {
         "url": "http://localhost:3000"
     },
-    "datetime": {
-        "format": "ddd mmm dd yyyy HH:MM:ss.l"
-    },
     "swagger": {
         "generate": true,
         "path": "./lighty-openapi.yml",

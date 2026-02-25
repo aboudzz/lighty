@@ -3,7 +3,7 @@
 const app = require('../app');
 const http = require('http');
 const config = require('config');
-require('console-stamp')(console, config.get('datetime.format'));
+const logger = require('../utils/logger');
 
 const port = normalizePort(config.get('server.port'));
 app.set('port', port);
@@ -28,11 +28,11 @@ server.on('error', (err) => {
     const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
     switch (err.code) {
         case 'EACCES':
-            console.error(`${bind} requires elevated privileges`);
+            logger.fatal('%s requires elevated privileges', bind);
             process.exit(1);
             break;
         case 'EADDRINUSE':
-            console.error(`${bind} is already in use`);
+            logger.fatal('%s is already in use', bind);
             process.exit(1);
             break;
         default:
@@ -42,5 +42,5 @@ server.on('error', (err) => {
 server.on('listening', () => {
     const addr = server.address();
     const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
-    console.info(`Listening on ${bind}`);
+    logger.info('Listening on %s', bind);
 });
