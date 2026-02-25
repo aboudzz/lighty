@@ -22,7 +22,7 @@ router.use('/users', users);
 router.use('/admin', admin);
 
 if (!isProduction) {
-    router.use('/api-docs', swagger);
+    router.use('/swagger', swagger);
 }
 
 /**

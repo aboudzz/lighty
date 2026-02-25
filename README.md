@@ -94,7 +94,7 @@ All endpoints are available under `/api/v1` (and at the root for backward compat
 
 ### API Documentation
 
-Swagger UI is available at `/api-docs` in non-production environments. OpenAPI annotations are defined inline in route and model files.
+Swagger UI is available at `/swagger` in non-production environments. OpenAPI annotations are defined inline in route and model files.
 
 ## Project Structure
 

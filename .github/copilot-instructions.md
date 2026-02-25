@@ -34,4 +34,4 @@ This is an Express 5 REST API with MongoDB (Mongoose) and JWT authentication (Pa
 - **Validation:** All input validation goes through `utils/validation.js` using the `validator` npm package. Validation functions throw error objects directly (not return booleans).
 - **User profiles:** Call `user.getProfile()` to strip sensitive fields (password, confirmationInfo, resetPasswordInfo) before sending responses.
 - **Test structure:** Each test file mocks `User` model methods (`findById`, `findOne`, `create`) and `passport.authenticate`. Tests use `supertest` against the Express app, not direct function calls.
-- **OpenAPI docs:** Route files contain `@openapi` JSDoc annotations. Swagger UI is available at `/api-docs` in non-production environments.
+- **OpenAPI docs:** Route files contain `@openapi` JSDoc annotations. Swagger UI is available at `/swagger` in non-production environments.
