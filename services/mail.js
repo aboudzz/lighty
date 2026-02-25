@@ -17,10 +17,11 @@ let authTransporter = null;
 
 const getTransporter = () => {
     if (!authTransporter) {
-        const pass = process.env[config.get("mail.sender_password_env")];
+        const envVar = config.get("mail.sender_password_env");
+        const pass = process.env[envVar];
         if (!pass) {
             throw new Error(
-                "MAIL_SENDER_PASSWORD not configured. Cannot send email.",
+                `${envVar} not configured. Cannot send email.`,
             );
         }
         authTransporter = nodemailer.createTransport({
@@ -65,7 +66,7 @@ const verifyConnection = () => {
     });
 };
 
-// Verify on first use, not at import time
+// Verify mail server connectivity on startup (skipped in test)
 if (process.env.NODE_ENV !== "test") {
     verifyConnection();
 }

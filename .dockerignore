@@ -7,3 +7,8 @@ __tests__
 .vscode
 logs
 mailserver/docker-data
+*.md
+sonar-project.properties
+jest.config.js
+jest.setup.js
+eslint.config.js

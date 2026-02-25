@@ -1,13 +1,13 @@
 const User = require("../models/User");
 
 const errors = require("../utils/errors");
-const logger = require("../utils/logger").child({ module: "admin" }); // eslint-disable-line no-unused-vars
 const { escapeRegExp } = require("../utils/helpers");
 const {
     validateEmail,
     validateName,
     validateRole,
     validateConfirmed,
+    validateObjectId,
 } = require("../utils/validation");
 
 const DEFAULT_LIMIT = 20;
@@ -57,6 +57,7 @@ const sanitizeUpdateFields = (body) => {
 
 module.exports = {
     getUser: async (req, res, next) => {
+        validateObjectId(req.params.id);
         const user = await User.findById(req.params.id);
         if (!user) return next(errors.NOT_FOUND);
         res.json(user.getProfile());
@@ -65,7 +66,8 @@ module.exports = {
     listUsers: async (req, res, _next) => {
         const findQuery = {};
         if (req.query.search) {
-            const regexp = new RegExp(escapeRegExp(req.query.search), "i");
+            const search = String(req.query.search).slice(0, 200);
+            const regexp = new RegExp(escapeRegExp(search), "i");
             findQuery.$or = [{ name: regexp }, { email: regexp }];
         }
 
@@ -101,6 +103,7 @@ module.exports = {
     },
 
     updateUser: async (req, res, next) => {
+        validateObjectId(req.params.id);
         const sanitizedData = sanitizeUpdateFields(req.body);
 
         // Guard: prevent admin from demoting themselves
@@ -126,6 +129,7 @@ module.exports = {
     },
 
     deleteUser: async (req, res, next) => {
+        validateObjectId(req.params.id);
         // Guard: prevent admin from deleting themselves
         if (req.params.id === req.user._id.toString()) {
             return next(errors.BAD_REQUEST);

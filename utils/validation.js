@@ -85,14 +85,14 @@ const validateName = (name) => {
  * @param {string} role - The role to validate
  * @returns {string} Sanitized role
  */
-const ALLOWED_ROLES = ["admin", "user"];
+const ALLOWED_ROLES = new Set(["admin", "user"]);
 
 const validateRole = (role) => {
     if (!role || typeof role !== "string") {
         throw errors.BAD_REQUEST;
     }
     const sanitized = validator.trim(role);
-    if (!ALLOWED_ROLES.includes(sanitized)) {
+    if (!ALLOWED_ROLES.has(sanitized)) {
         throw errors.BAD_REQUEST;
     }
     return sanitized;
@@ -117,11 +117,24 @@ const validateConfirmed = (confirmed) => {
         : validator.toBoolean(confirmed);
 };
 
+/**
+ * Validates a MongoDB ObjectId
+ * @param {string} id - The ID to validate
+ * @returns {string} Validated ID
+ */
+const validateObjectId = (id) => {
+    if (!id || typeof id !== "string" || !validator.isMongoId(id)) {
+        throw errors.BAD_REQUEST;
+    }
+    return id;
+};
+
 module.exports = {
     validatePassword,
     validateEmail,
     validateName,
     validateRole,
     validateConfirmed,
+    validateObjectId,
     PASSWORD_MIN_LENGTH,
 };

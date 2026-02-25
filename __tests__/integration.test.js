@@ -284,7 +284,7 @@ describe('Integration Tests - User Workflows', () => {
             const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
 
             const response = await request(app)
-                .get('/api/v1/users/nonexistentid')
+                .get('/api/v1/users/507f1f77bcf86cd799439099')
                 .set('Authorization', `Bearer ${token}`);
             expect(response.status).toBe(404);
         });

@@ -12,6 +12,7 @@ const {
     validatePassword,
     validateEmail,
     validateName,
+    validateObjectId,
 } = require("../utils/validation");
 
 const confirmationBaseUrl = config.get("app.confirmationBaseUrl");
@@ -22,6 +23,7 @@ const getJwtSecret = () => process.env[config.get("jwt.secret_env")];
 
 module.exports = {
     getUser: async (req, res, next) => {
+        validateObjectId(req.params.id);
         const user = await User.findById(req.params.id);
         if (!user) return next(errors.NOT_FOUND);
         res.json(user.getProfile());
@@ -32,13 +34,13 @@ module.exports = {
         const email = validateEmail(req.body.email);
         validatePassword(req.body.password);
 
-        const any = await User.findOne({ email: email });
+        const any = await User.findOne({ email: String(email) });
         if (any) return next(errors.EMAIL_ALREADY_REGISTERED);
 
         const user = await User.create({
             name: name,
-            email: email,
-            password: req.body.password,
+            email: String(email),
+            password: String(req.body.password),
             confirmationInfo: {
                 lookup: nanoid(),
                 verify: nanoid(),
@@ -56,8 +58,12 @@ module.exports = {
     },
 
     confirm: async (req, res, next) => {
-        const lookup = validator.escape(req.query.l);
-        const verify = validator.escape(req.query.v);
+        const { l, v } = req.query;
+        if (typeof l !== "string" || typeof v !== "string") {
+            return next(errors.BAD_REQUEST);
+        }
+        const lookup = validator.escape(l);
+        const verify = validator.escape(v);
         const user = await User.findOne({ "confirmationInfo.lookup": lookup });
         if (!user || user.confirmationInfo.verify !== verify)
             return next(errors.BAD_REQUEST);
@@ -74,7 +80,7 @@ module.exports = {
 
     authenticate: async (req, res, next) => {
         const email = validateEmail(req.body.email);
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ email: String(email) });
         if (!user) return next(errors.INVALID_CREDENTIALS);
         const match = await bcrypt.compare(
             req.body.password || "",
@@ -92,7 +98,7 @@ module.exports = {
 
     forgotPassword: async (req, res, _next) => {
         const email = validateEmail(req.body.email);
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ email: String(email) });
         if (user) {
             user.resetPasswordInfo = {
                 lookup: nanoid(),
@@ -114,21 +120,33 @@ module.exports = {
     },
 
     resetPassword: async (req, res, next) => {
-        const lookup = validator.escape(req.body.lookup);
-        const verify = validator.escape(req.body.verify);
-        validatePassword(req.body.password);
+        const { lookup, verify, password } = req.body || {};
 
-        const user = await User.findOne({ "resetPasswordInfo.lookup": lookup });
+        if (
+            typeof lookup !== "string" ||
+            typeof verify !== "string" ||
+            typeof password !== "string"
+        ) {
+            return next(errors.BAD_REQUEST);
+        }
+
+        const escapedLookup = validator.escape(lookup);
+        const escapedVerify = validator.escape(verify);
+        validatePassword(password);
+
+        const user = await User.findOne({
+            "resetPasswordInfo.lookup": escapedLookup,
+        });
         if (
             !user ||
             !user.resetPasswordInfo ||
-            user.resetPasswordInfo.verify !== verify
+            user.resetPasswordInfo.verify !== escapedVerify
         )
             return next(errors.BAD_REQUEST);
         if (user.resetPasswordInfo.expire < Date.now())
             return next(errors.LINK_EXPIRED);
 
-        user.password = req.body.password;
+        user.password = password;
         user.resetPasswordInfo = undefined;
         await user.save();
         res.status(200).send();

@@ -1,23 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const rateLimit = require("express-rate-limit");
 
+const { authLimiter } = require("../utils/rateLimiters");
 const middleware = require("../controllers/users");
 
 const jwtAuth = () => passport.authenticate("jwt", { session: false });
-
-// Stricter rate limiting for auth endpoints (brute-force protection)
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10,
-    message: {
-        code: "RATE_LIMIT_EXCEEDED",
-        message: "Too many attempts, please try again later.",
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
 
 /**
  * @openapi

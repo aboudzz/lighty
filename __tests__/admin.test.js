@@ -22,12 +22,15 @@ passport.authenticate = jest.fn((_strategy, _options, _callback) => (req, res, n
 
 const app = require('../app');
 
+const validId = '507f1f77bcf86cd799439011';
+const validId2 = '507f1f77bcf86cd799439012';
+
 describe('GET /admin/users', () => {
     it('should return a user profile when id is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
         User.findById.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).get('/admin/users/1234567891');
+        const res = await request(app).get(`/admin/users/${validId}`);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual(userJohnDoe.getProfile());
@@ -57,7 +60,7 @@ describe('GET /admin/users', () => {
     it('should return 404 when user is not found', async () => {
         User.findById.mockResolvedValue(null);
 
-        const res = await request(app).get('/admin/users/123');
+        const res = await request(app).get(`/admin/users/${validId2}`);
 
         expect(res.status).toBe(404);
     });
@@ -115,7 +118,7 @@ describe('PATCH /admin/users/:id', () => {
             return userJohnDoe;
         });
 
-        const res = await request(app).patch('/admin/users/1234567891')
+        const res = await request(app).patch(`/admin/users/${validId}`)
             .send({ name: 'John Johanson Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user' });
 
         expect(res.status).toBe(200);
@@ -123,13 +126,13 @@ describe('PATCH /admin/users/:id', () => {
     });
 
     it('should return 400 when null request is provided', async () => {
-        const res = await request(app).patch('/admin/users/123').send(null);
+        const res = await request(app).patch(`/admin/users/${validId2}`).send(null);
 
         expect(res.status).toBe(400);
     });
 
     it('should return 400 bad request when invalid data is provided', async () => {
-        const res = await request(app).patch('/admin/users/1234567891')
+        const res = await request(app).patch(`/admin/users/${validId}`)
             .send({ name: 'John Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user', password: 'trying to change it' });
 
         expect(res.status).toBe(400);
@@ -138,7 +141,7 @@ describe('PATCH /admin/users/:id', () => {
     it('should return 404 when user is not found', async () => {
         User.findByIdAndUpdate.mockResolvedValue(null);
 
-        const res = await request(app).patch('/admin/users/123').send({});
+        const res = await request(app).patch(`/admin/users/${validId2}`).send({});
 
         expect(res.status).toBe(404);
     });
@@ -148,7 +151,7 @@ describe('DELETE /admin/users/:id', () => {
     it('should delete a user when id is provided', async () => {
         User.deleteOne.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
 
-        const res = await request(app).delete('/admin/users/1234567891');
+        const res = await request(app).delete(`/admin/users/${validId}`);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ acknowledged: true, deletedCount: 1 });
@@ -157,7 +160,7 @@ describe('DELETE /admin/users/:id', () => {
     it('should return 404 when user to delete is not found', async () => {
         User.deleteOne.mockResolvedValue({ acknowledged: true, deletedCount: 0 });
 
-        const res = await request(app).delete('/admin/users/1234567891');
+        const res = await request(app).delete(`/admin/users/${validId}`);
 
         expect(res.status).toBe(404);
     });

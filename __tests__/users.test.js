@@ -30,7 +30,7 @@ describe('GET /users/:id', () => {
     it('should return a user profile when id is provided', async () => {
         User.findById.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).get('/users/1234567891');
+        const res = await request(app).get('/users/507f1f77bcf86cd799439011');
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual(userJohnDoe.getProfile());
@@ -39,7 +39,7 @@ describe('GET /users/:id', () => {
     it('should return 404 when user is not found', async () => {
         User.findById.mockResolvedValue(null);
 
-        const res = await request(app).get('/users/123');
+        const res = await request(app).get('/users/507f1f77bcf86cd799439012');
 
         expect(res.status).toBe(404);
     });
