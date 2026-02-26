@@ -62,7 +62,19 @@ passport.initialize();
 passport.use(jwtStrategy);
 
 const app = express();
-app.set("trust proxy", 1);
+
+const trustProxy = process.env.TRUST_PROXY;
+if (typeof trustProxy === "string") {
+    let trustProxyValue;
+    if (trustProxy.toLowerCase() === "true") {
+        trustProxyValue = true;
+    } else if (trustProxy.toLowerCase() === "false") {
+        trustProxyValue = false;
+    } else {
+        trustProxyValue = trustProxy;
+    }
+    app.set("trust proxy", trustProxyValue);
+}
 
 // CORS configuration
 const corsOrigins = config.get("cors.origins");

@@ -58,13 +58,19 @@ const validateEmail = (email) => {
         throw errors.BAD_REQUEST;
     }
 
-    return validator.normalizeEmail(email, {
+    const normalized = validator.normalizeEmail(email, {
         gmail_remove_dots: false,
         gmail_remove_subaddress: false,
         outlookdotcom_remove_subaddress: false,
         yahoo_remove_subaddress: false,
         icloud_remove_subaddress: false,
     });
+
+    if (typeof normalized !== "string") {
+        return email;
+    }
+
+    return normalized;
 };
 
 /**
