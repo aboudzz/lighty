@@ -1,7 +1,7 @@
 {
     "server": {
         "host": "0.0.0.0",
-        "port": "8080"
+        "port": 8080
     },
     "cors": {
         "_comment_origins": "Replace with your actual production domain before deployment",

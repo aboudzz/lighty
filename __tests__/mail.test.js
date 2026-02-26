@@ -200,4 +200,76 @@ describe('Mail Service', () => {
             jest.resetModules();
         });
     });
+
+    describe('verifyConnection', () => {
+        it('should verify connection using authenticated transporter', () => {
+            // Reset modules to re-import mail service
+            jest.resetModules();
+
+            // Mock nodemailer before re-import
+            const mockVerify = jest.fn((cb) => cb(null, true));
+            jest.doMock('nodemailer', () => ({
+                createTransport: jest.fn().mockReturnValue({
+                    verify: mockVerify,
+                    sendMail: jest.fn().mockResolvedValue({ messageId: 'test' }),
+                }),
+            }));
+
+            // Temporarily set NODE_ENV to trigger verifyConnection
+            const origEnv = process.env.NODE_ENV;
+            process.env.NODE_ENV = 'development';
+
+            require('../services/mail');
+
+            expect(mockVerify).toHaveBeenCalled();
+
+            // Restore
+            process.env.NODE_ENV = origEnv;
+            jest.resetModules();
+        });
+
+        it('should handle verification errors', () => {
+            jest.resetModules();
+
+            const mockVerify = jest.fn((cb) => cb(new Error('SMTP error')));
+            jest.doMock('nodemailer', () => ({
+                createTransport: jest.fn().mockReturnValue({
+                    verify: mockVerify,
+                    sendMail: jest.fn().mockResolvedValue({ messageId: 'test' }),
+                }),
+            }));
+
+            const origEnv = process.env.NODE_ENV;
+            process.env.NODE_ENV = 'development';
+
+            // Should not throw — errors are logged
+            expect(() => require('../services/mail')).not.toThrow();
+
+            process.env.NODE_ENV = origEnv;
+            jest.resetModules();
+        });
+
+        it('should handle missing mail password in verifyConnection', () => {
+            jest.resetModules();
+
+            jest.doMock('nodemailer', () => ({
+                createTransport: jest.fn().mockReturnValue({
+                    verify: jest.fn(),
+                    sendMail: jest.fn(),
+                }),
+            }));
+
+            const origEnv = process.env.NODE_ENV;
+            const origPass = process.env.MAIL_SENDER_PASSWORD;
+            process.env.NODE_ENV = 'development';
+            delete process.env.MAIL_SENDER_PASSWORD;
+
+            // Should not throw — catch block handles the error
+            expect(() => require('../services/mail')).not.toThrow();
+
+            process.env.NODE_ENV = origEnv;
+            if (origPass) process.env.MAIL_SENDER_PASSWORD = origPass;
+            jest.resetModules();
+        });
+    });
 });

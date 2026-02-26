@@ -7,6 +7,7 @@ jest.mock('../models/User', () => {
     const User = jest.requireActual('../models/User');
     User.find = jest.fn();
     User.findById = jest.fn();
+    User.findOne = jest.fn();
     User.findByIdAndUpdate = jest.fn();
     User.deleteOne = jest.fn();
     return User;
@@ -110,6 +111,7 @@ describe('GET /admin/users', () => {
 describe('PATCH /admin/users/:id', () => {
     it('should update a user profile when valid data is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
+        User.findOne.mockResolvedValue(null);
         User.findByIdAndUpdate.mockImplementation((id, data) => {
             userJohnDoe.name = data.name;
             userJohnDoe.email = data.email;
@@ -137,6 +139,17 @@ describe('PATCH /admin/users/:id', () => {
 
         expect(res.status).toBe(400);
     })
+
+    it('should return 400 when email is already taken by another user', async () => {
+        const existingUser = new User({ name: 'Existing', email: 'taken@example.com' });
+        existingUser._id = { toString: () => '507f1f77bcf86cd799439099' };
+        User.findOne.mockResolvedValue(existingUser);
+
+        const res = await request(app).patch(`/admin/users/${validId}`)
+            .send({ email: 'taken@example.com' });
+
+        expect(res.status).toBe(400);
+    });
 
     it('should return 404 when user is not found', async () => {
         User.findByIdAndUpdate.mockResolvedValue(null);

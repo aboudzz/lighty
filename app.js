@@ -27,6 +27,15 @@ if (process.env.NODE_ENV === "production") {
         );
         process.exit(1);
     }
+
+    const corsOrigins = config.get("cors.origins");
+    /* istanbul ignore next -- production deployment check */
+    if (corsOrigins.some((o) => o.includes("your-production-domain"))) {
+        logger.fatal(
+            "Production config contains placeholder CORS origins. Update config/production.json before deploying.",
+        );
+        process.exit(1);
+    }
 }
 
 // Only connect to database if not in test mode and if not already connected
@@ -53,6 +62,19 @@ passport.initialize();
 passport.use(jwtStrategy);
 
 const app = express();
+
+const trustProxy = process.env.TRUST_PROXY;
+if (typeof trustProxy === "string") {
+    let trustProxyValue;
+    if (trustProxy.toLowerCase() === "true") {
+        trustProxyValue = true;
+    } else if (trustProxy.toLowerCase() === "false") {
+        trustProxyValue = false;
+    } else {
+        trustProxyValue = trustProxy;
+    }
+    app.set("trust proxy", trustProxyValue);
+}
 
 // CORS configuration
 const corsOrigins = config.get("cors.origins");

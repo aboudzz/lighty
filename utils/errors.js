@@ -61,6 +61,7 @@ const errors = {
 
         res.status(status).json({
             code: err.code || "INTERNAL_SERVER_ERROR",
+            // Error details shown in dev/test only — never in production
             message:
                 process.env.NODE_ENV === "production" ? undefined : err.message,
         });

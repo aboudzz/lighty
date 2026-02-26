@@ -106,6 +106,24 @@ describe('GET /users/confirm', () => {
         expect(userJohnDoe.confirmed).toEqual(false);
     });
 
+    it('should return 400 when user has no confirmationInfo verify', async () => {
+        const confirmationInfo = { lookup: 'lookup', verify: undefined };
+        userJohnDoe.confirmationInfo = confirmationInfo;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).get('/users/confirm?l=lookup&v=verify');
+        expect(res.statusCode).toEqual(400);
+    });
+
+    it('should return 400 when verification token length differs', async () => {
+        const confirmationInfo = { lookup: 'lookup', verify: 'ab' };
+        userJohnDoe.confirmationInfo = confirmationInfo;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).get('/users/confirm?l=lookup&v=abcdef');
+        expect(res.statusCode).toEqual(400);
+    });
+
     it('should return 410 when confirmation link is expired', async () => {
         const confirmationInfo = { lookup: 'lookup', verify: 'verify', expire: Date.now() - 1000 };
         userJohnDoe.confirmed = false;
@@ -121,6 +139,7 @@ describe('GET /users/confirm', () => {
 
 describe('POST /auth/login', () => {
     it('should authenticate the user and get token', async () => {
+        userJohnDoe.confirmed = true;
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/auth/login')
@@ -133,6 +152,7 @@ describe('POST /auth/login', () => {
     });
 
     it('should return 401 when incorrect password', async () => {
+        userJohnDoe.confirmed = true;
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/auth/login')
@@ -146,6 +166,16 @@ describe('POST /auth/login', () => {
         
         const res = await request(app).post('/auth/login')
             .send({email: 'jane@example.com', password: validPassword});
+
+        expect(res.statusCode).toEqual(401);
+    });
+
+    it('should return 401 when user is not confirmed', async () => {
+        userJohnDoe.confirmed = false;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).post('/auth/login')
+            .send({email: 'john@example.com', password: validPassword});
 
         expect(res.statusCode).toEqual(401);
     });

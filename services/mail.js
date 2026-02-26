@@ -38,32 +38,16 @@ const getTransporter = () => {
 const verifyConnection = () => {
     if (verified) return;
     verified = true;
-    const transporter = nodemailer.createTransport({
-        host: service,
-        port: port,
-        secure: secure,
-        tls: tlsOptions,
-    });
-    transporter.verify((error) => {
-        if (error) {
-            logger.error({ error }, "Mail server connection failed");
-        } else {
-            if (!sender) {
-                logger.warn(
-                    "Mail sender address not configured. Email functionality will be limited.",
-                );
+    try {
+        const transporter = getTransporter();
+        transporter.verify((error) => {
+            if (error) {
+                logger.error({ error }, "Mail server connection failed");
             }
-            if (
-                !process.env[config.get("mail.sender_password_env")] &&
-                process.env.NODE_ENV !== "test"
-            ) {
-                logger.warn(
-                    "%s environment variable not set. Email functionality will be limited.",
-                    config.get("mail.sender_password_env"),
-                );
-            }
-        }
-    });
+        });
+    } catch (err) {
+        logger.warn({ err }, "Mail transporter not available for verification");
+    }
 };
 
 // Verify mail server connectivity on startup (skipped in test)
