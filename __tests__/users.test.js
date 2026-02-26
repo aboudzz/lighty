@@ -121,6 +121,7 @@ describe('GET /users/confirm', () => {
 
 describe('POST /auth/login', () => {
     it('should authenticate the user and get token', async () => {
+        userJohnDoe.confirmed = true;
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/auth/login')
@@ -133,6 +134,7 @@ describe('POST /auth/login', () => {
     });
 
     it('should return 401 when incorrect password', async () => {
+        userJohnDoe.confirmed = true;
         User.findOne.mockResolvedValue(userJohnDoe);
 
         const res = await request(app).post('/auth/login')
@@ -146,6 +148,16 @@ describe('POST /auth/login', () => {
         
         const res = await request(app).post('/auth/login')
             .send({email: 'jane@example.com', password: validPassword});
+
+        expect(res.statusCode).toEqual(401);
+    });
+
+    it('should return 401 when user is not confirmed', async () => {
+        userJohnDoe.confirmed = false;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).post('/auth/login')
+            .send({email: 'john@example.com', password: validPassword});
 
         expect(res.statusCode).toEqual(401);
     });

@@ -7,6 +7,7 @@ jest.mock('../models/User', () => {
     const User = jest.requireActual('../models/User');
     User.find = jest.fn();
     User.findById = jest.fn();
+    User.findOne = jest.fn();
     User.findByIdAndUpdate = jest.fn();
     User.deleteOne = jest.fn();
     return User;
@@ -110,6 +111,7 @@ describe('GET /admin/users', () => {
 describe('PATCH /admin/users/:id', () => {
     it('should update a user profile when valid data is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
+        User.findOne.mockResolvedValue(null);
         User.findByIdAndUpdate.mockImplementation((id, data) => {
             userJohnDoe.name = data.name;
             userJohnDoe.email = data.email;

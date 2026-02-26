@@ -27,6 +27,14 @@ if (process.env.NODE_ENV === "production") {
         );
         process.exit(1);
     }
+
+    const corsOrigins = config.get("cors.origins");
+    if (corsOrigins.some((o) => o.includes("your-production-domain"))) {
+        logger.fatal(
+            "Production config contains placeholder CORS origins. Update config/production.json before deploying.",
+        );
+        process.exit(1);
+    }
 }
 
 // Only connect to database if not in test mode and if not already connected
@@ -53,6 +61,7 @@ passport.initialize();
 passport.use(jwtStrategy);
 
 const app = express();
+app.set("trust proxy", 1);
 
 // CORS configuration
 const corsOrigins = config.get("cors.origins");

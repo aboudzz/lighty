@@ -1,5 +1,6 @@
 const User = require("../models/User");
 
+const { getUser } = require("./users");
 const errors = require("../utils/errors");
 const { escapeRegExp } = require("../utils/helpers");
 const {
@@ -36,15 +37,15 @@ const sanitizeUpdateFields = (body) => {
 
     const sanitized = {};
 
-    if (body.name) {
+    if ("name" in body) {
         sanitized.name = validateName(body.name);
     }
 
-    if (body.email) {
+    if ("email" in body) {
         sanitized.email = validateEmail(body.email);
     }
 
-    if (body.role) {
+    if ("role" in body) {
         sanitized.role = validateRole(body.role);
     }
 
@@ -56,12 +57,7 @@ const sanitizeUpdateFields = (body) => {
 };
 
 module.exports = {
-    getUser: async (req, res, next) => {
-        const id = validateObjectId(req.params.id);
-        const user = await User.findById(String(id));
-        if (!user) return next(errors.NOT_FOUND);
-        res.json(user.getProfile());
-    },
+    getUser,
 
     listUsers: async (req, res, _next) => {
         const findQuery = {};
@@ -113,6 +109,13 @@ module.exports = {
             sanitizedData.role !== req.user.role
         ) {
             return next(errors.BAD_REQUEST);
+        }
+
+        if (sanitizedData.email) {
+            const existing = await User.findOne({ email: sanitizedData.email });
+            if (existing && existing._id.toString() !== id) {
+                return next(errors.EMAIL_ALREADY_REGISTERED);
+            }
         }
 
         // Note: findByIdAndUpdate bypasses pre('save') hooks.

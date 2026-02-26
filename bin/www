@@ -3,6 +3,7 @@
 const app = require("../app");
 const http = require("http");
 const config = require("config");
+const mongoose = require("mongoose");
 const logger = require("../utils/logger");
 
 const port = normalizePort(config.get("server.port"));
@@ -20,7 +21,8 @@ function normalizePort(val) {
 }
 
 const server = http.createServer(app);
-server.listen(port);
+const host = config.get("server.host");
+server.listen(port, host);
 server.on("error", (err) => {
     if (err.syscall !== "listen") {
         throw err;
@@ -45,3 +47,25 @@ server.on("listening", () => {
         typeof addr === "string" ? `pipe ${addr}` : `port ${addr.port}`;
     logger.info("Listening on %s", bind);
 });
+
+const shutdown = (signal) => {
+    logger.info("Received %s, shutting down gracefully", signal);
+    const forceExitTimeout = setTimeout(() => {
+        logger.error("Forced shutdown after timeout");
+        process.exit(1);
+    }, 10000);
+    forceExitTimeout.unref();
+    server.close(async () => {
+        logger.info("HTTP server closed");
+        try {
+            await mongoose.connection.close();
+            logger.info("Database connection closed");
+        } catch (err) {
+            logger.error({ err }, "Error closing database connection");
+        }
+        process.exit(0);
+    });
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

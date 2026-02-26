@@ -1,8 +1,17 @@
+const crypto = require("node:crypto");
 const config = require("config");
 const bcrypt = require("bcryptjs");
 const { nanoid } = require("nanoid");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
+
+const timingSafeEqual = (a, b) => {
+    if (typeof a !== "string" || typeof b !== "string") return false;
+    const bufA = Buffer.from(a);
+    const bufB = Buffer.from(b);
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+};
 
 const User = require("../models/User");
 const errors = require("../utils/errors");
@@ -65,7 +74,7 @@ module.exports = {
         const lookup = validator.escape(l);
         const verify = validator.escape(v);
         const user = await User.findOne({ "confirmationInfo.lookup": lookup });
-        if (!user || user.confirmationInfo.verify !== verify)
+        if (!user || !timingSafeEqual(user.confirmationInfo.verify, verify))
             return next(errors.BAD_REQUEST);
         if (
             user.confirmationInfo.expire &&
@@ -87,6 +96,7 @@ module.exports = {
             user.password,
         );
         if (!match) return next(errors.INVALID_CREDENTIALS);
+        if (!user.confirmed) return next(errors.UNAUTHORIZED);
         const payload = { sub: user._id };
         const token = jwt.sign(payload, getJwtSecret(), {
             expiresIn: config.get("jwt.expiresIn"),
@@ -140,7 +150,7 @@ module.exports = {
         if (
             !user ||
             !user.resetPasswordInfo ||
-            user.resetPasswordInfo.verify !== escapedVerify
+            !timingSafeEqual(user.resetPasswordInfo.verify, escapedVerify)
         )
             return next(errors.BAD_REQUEST);
         if (user.resetPasswordInfo.expire < Date.now())
