@@ -112,7 +112,7 @@ module.exports = {
         }
 
         if ("email" in sanitizedData) {
-            const existing = await User.findOne({ email: sanitizedData.email });
+            const existing = await User.findOne({ email: String(sanitizedData.email) });
             if (existing && existing._id.toString() !== id) {
                 return next(errors.EMAIL_ALREADY_REGISTERED);
             }
