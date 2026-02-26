@@ -106,6 +106,24 @@ describe('GET /users/confirm', () => {
         expect(userJohnDoe.confirmed).toEqual(false);
     });
 
+    it('should return 400 when user has no confirmationInfo verify', async () => {
+        const confirmationInfo = { lookup: 'lookup', verify: undefined };
+        userJohnDoe.confirmationInfo = confirmationInfo;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).get('/users/confirm?l=lookup&v=verify');
+        expect(res.statusCode).toEqual(400);
+    });
+
+    it('should return 400 when verification token length differs', async () => {
+        const confirmationInfo = { lookup: 'lookup', verify: 'ab' };
+        userJohnDoe.confirmationInfo = confirmationInfo;
+        User.findOne.mockResolvedValue(userJohnDoe);
+
+        const res = await request(app).get('/users/confirm?l=lookup&v=abcdef');
+        expect(res.statusCode).toEqual(400);
+    });
+
     it('should return 410 when confirmation link is expired', async () => {
         const confirmationInfo = { lookup: 'lookup', verify: 'verify', expire: Date.now() - 1000 };
         userJohnDoe.confirmed = false;

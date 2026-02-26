@@ -140,6 +140,17 @@ describe('PATCH /admin/users/:id', () => {
         expect(res.status).toBe(400);
     })
 
+    it('should return 400 when email is already taken by another user', async () => {
+        const existingUser = new User({ name: 'Existing', email: 'taken@example.com' });
+        existingUser._id = { toString: () => '507f1f77bcf86cd799439099' };
+        User.findOne.mockResolvedValue(existingUser);
+
+        const res = await request(app).patch(`/admin/users/${validId}`)
+            .send({ email: 'taken@example.com' });
+
+        expect(res.status).toBe(400);
+    });
+
     it('should return 404 when user is not found', async () => {
         User.findByIdAndUpdate.mockResolvedValue(null);
 

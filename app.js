@@ -29,6 +29,7 @@ if (process.env.NODE_ENV === "production") {
     }
 
     const corsOrigins = config.get("cors.origins");
+    /* istanbul ignore next -- production deployment check */
     if (corsOrigins.some((o) => o.includes("your-production-domain"))) {
         logger.fatal(
             "Production config contains placeholder CORS origins. Update config/production.json before deploying.",
