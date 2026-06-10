@@ -1,7 +1,6 @@
 const crypto = require("node:crypto");
 const config = require("config");
 const bcrypt = require("bcryptjs");
-const { nanoid } = require("nanoid");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 
@@ -51,8 +50,8 @@ module.exports = {
             email: String(email),
             password: String(req.body.password),
             confirmationInfo: {
-                lookup: nanoid(),
-                verify: nanoid(),
+                lookup: crypto.randomBytes(16).toString("hex"),
+                verify: crypto.randomBytes(16).toString("hex"),
                 expire: Date.now() + CONFIRMATION_EXPIRY_MS,
                 URL: `${confirmationBaseUrl}/users/confirm`,
             },
@@ -111,8 +110,8 @@ module.exports = {
         const user = await User.findOne({ email: String(email) });
         if (user) {
             user.resetPasswordInfo = {
-                lookup: nanoid(),
-                verify: nanoid(),
+                lookup: crypto.randomBytes(16).toString("hex"),
+                verify: crypto.randomBytes(16).toString("hex"),
                 expire: Date.now() + 3600000, // 1 hour
                 URL: `${resetPasswordBaseUrl}/users/resetPassword`,
             };
