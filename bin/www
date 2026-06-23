@@ -6,19 +6,8 @@ const config = require("config");
 const mongoose = require("mongoose");
 const logger = require("../utils/logger");
 
-const port = normalizePort(config.get("server.port"));
+const port = config.get("server.port");
 app.set("port", port);
-
-function normalizePort(val) {
-    const parsedPort = parseInt(val, 10);
-    if (isNaN(parsedPort)) {
-        return val;
-    }
-    if (parsedPort >= 0) {
-        return parsedPort;
-    }
-    return false;
-}
 
 const server = http.createServer(app);
 const host = config.get("server.host");
