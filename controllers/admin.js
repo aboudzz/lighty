@@ -1,6 +1,5 @@
 const User = require("../models/User");
 
-const { getUser } = require("./users");
 const errors = require("../utils/errors");
 const { escapeRegExp } = require("../utils/helpers");
 const {
@@ -57,8 +56,6 @@ const sanitizeUpdateFields = (body) => {
 };
 
 module.exports = {
-    getUser,
-
     listUsers: async (req, res, _next) => {
         const findQuery = {};
         if (req.query.search) {

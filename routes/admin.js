@@ -106,7 +106,7 @@ router.route("/users").get(middleware.listUsers);
  */
 router
     .route("/users/:id")
-    .get(middleware.getUser)
+    .get(getUser)
     .patch(middleware.updateUser)
     .delete(middleware.deleteUser);
 
