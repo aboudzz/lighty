@@ -62,7 +62,7 @@ Before deploying to production, ensure:
 - [ ] `.env` file created with required secrets (JWT_SECRET, ADMIN_PASSWORD, MAIL_SENDER_PASSWORD)
 - [ ] `JWT_SECRET` is strong and unique (minimum 32 characters)
 - [ ] `ADMIN_PASSWORD` meets password requirements (8+ chars, mixed case, numbers)
-- [ ] `config/production.json` configured with production settings (app.url with HTTPS, CORS origins, server host/port)
+- [ ] `config/production.json` configured with production settings (app.baseUrl with HTTPS, CORS origins, server host/port)
 - [ ] MongoDB has authentication enabled and URI is correct in config
 - [ ] All dependencies updated (`npm audit` shows 0 vulnerabilities)
 - [ ] HTTPS/TLS configured on server

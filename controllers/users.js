@@ -23,8 +23,7 @@ const {
     validateObjectId,
 } = require("../utils/validation");
 
-const confirmationBaseUrl = config.get("app.confirmationBaseUrl");
-const resetPasswordBaseUrl = config.get("app.resetPasswordBaseUrl");
+const baseUrl = config.get("app.baseUrl");
 const CONFIRMATION_EXPIRY_MS = 24 * 3600000; // 24 hours
 
 const getJwtSecret = () => process.env[config.get("jwt.secret_env")];
@@ -53,7 +52,7 @@ module.exports = {
                 lookup: crypto.randomBytes(16).toString("hex"),
                 verify: crypto.randomBytes(16).toString("hex"),
                 expire: Date.now() + CONFIRMATION_EXPIRY_MS,
-                URL: `${confirmationBaseUrl}/users/confirm`,
+                URL: `${baseUrl}/users/confirm`,
             },
         });
         mailService.sendConfirmation(user).catch((err) => {
@@ -113,7 +112,7 @@ module.exports = {
                 lookup: crypto.randomBytes(16).toString("hex"),
                 verify: crypto.randomBytes(16).toString("hex"),
                 expire: Date.now() + 3600000, // 1 hour
-                URL: `${resetPasswordBaseUrl}/users/resetPassword`,
+                URL: `${baseUrl}/users/resetPassword`,
             };
             await user.save();
             try {
