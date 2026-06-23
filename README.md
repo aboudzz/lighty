@@ -65,7 +65,7 @@ npx jest -t "should authenticate"  # Run tests matching a name pattern
 
 ## API Endpoints
 
-All endpoints are available under `/api/v1` (legacy mounts at the root are deprecated).
+All endpoints are available under `/api/v1`.
 
 ### Public
 
@@ -84,8 +84,6 @@ All endpoints are available under `/api/v1` (legacy mounts at the root are depre
 | POST   | `/api/v1/auth/forgot-password`    | Request password reset   |
 | POST   | `/api/v1/auth/reset-password`     | Reset password via token |
 | POST   | `/api/v1/auth/update-password`    | Change own password (JWT required) |
-
-Legacy auth routes (`/users/authenticate`, `/users/forgotpassword`, etc.) still work but are deprecated.
 
 ### Authenticated (Bearer token)
 
@@ -130,7 +128,7 @@ Swagger UI is available at `/swagger` in non-production environments. OpenAPI an
 - **Role-based access** — `admin` and `user` roles; admin routes enforce role checks at the router level
 - **Email integration** — Nodemailer with EJS templates (text + HTML) for confirmation and password reset emails
 - **Security** — Helmet, CORS, global + auth-specific rate limiting, request body size limits, input validation and sanitization, bcrypt password hashing
-- **API versioning** — Routes mounted under `/api/v1` with deprecated legacy mounts
+- **API versioning** — Routes mounted under `/api/v1`
 - **API documentation** — Swagger UI auto-generated from inline OpenAPI annotations
 - **Docker** — Multi-stage Dockerfile for production builds
 - **Linting** — ESLint with flat config
