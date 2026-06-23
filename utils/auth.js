@@ -1,3 +1,4 @@
+const passport = require("passport");
 const errors = require("./errors");
 
 const isAdmin = (req, res, next) => {
@@ -5,4 +6,6 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-module.exports = { isAdmin };
+const jwtAuth = passport.authenticate("jwt", { session: false });
+
+module.exports = { isAdmin, jwtAuth };
