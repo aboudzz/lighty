@@ -26,12 +26,12 @@ const app = require('../app');
 const validId = '507f1f77bcf86cd799439011';
 const validId2 = '507f1f77bcf86cd799439012';
 
-describe('GET /admin/users', () => {
+describe('GET /api/v1/admin/users', () => {
     it('should return a user profile when id is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
         User.findById.mockResolvedValue(userJohnDoe);
 
-        const res = await request(app).get(`/admin/users/${validId}`);
+        const res = await request(app).get(`/api/v1/admin/users/${validId}`);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual(userJohnDoe.getProfile());
@@ -49,7 +49,7 @@ describe('GET /admin/users', () => {
             exec: jest.fn().mockResolvedValue([userJohnDoe, userJaneSmith]),
         });
 
-        const res = await request(app).get('/admin/users');
+        const res = await request(app).get('/api/v1/admin/users');
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({
@@ -61,7 +61,7 @@ describe('GET /admin/users', () => {
     it('should return 404 when user is not found', async () => {
         User.findById.mockResolvedValue(null);
 
-        const res = await request(app).get(`/admin/users/${validId2}`);
+        const res = await request(app).get(`/api/v1/admin/users/${validId2}`);
 
         expect(res.status).toBe(404);
     });
@@ -77,7 +77,7 @@ describe('GET /admin/users', () => {
             exec: jest.fn().mockResolvedValue([userJohnDoe]),
         });
 
-        const res = await request(app).get('/admin/users?search=John');
+        const res = await request(app).get('/api/v1/admin/users?search=John');
 
         expect(res.status).toBe(200);
         expect(User.find).toHaveBeenCalledWith({
@@ -101,14 +101,14 @@ describe('GET /admin/users', () => {
         };
         User.find.mockReturnValue(mockFind);
 
-        const res = await request(app).get('/admin/users?sort=name');
+        const res = await request(app).get('/api/v1/admin/users?sort=name');
 
         expect(res.status).toBe(200);
         expect(mockFind.sort).toHaveBeenCalledWith({ name: 1 });
     });
 });
 
-describe('PATCH /admin/users/:id', () => {
+describe('PATCH /api/v1/admin/users/:id', () => {
     it('should update a user profile when valid data is provided', async () => {
         let userJohnDoe = new User({ name: 'John Doe', email: 'john@example.com' });
         User.findOne.mockResolvedValue(null);
@@ -120,7 +120,7 @@ describe('PATCH /admin/users/:id', () => {
             return userJohnDoe;
         });
 
-        const res = await request(app).patch(`/admin/users/${validId}`)
+        const res = await request(app).patch(`/api/v1/admin/users/${validId}`)
             .send({ name: 'John Johanson Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user' });
 
         expect(res.status).toBe(200);
@@ -128,13 +128,13 @@ describe('PATCH /admin/users/:id', () => {
     });
 
     it('should return 400 when null request is provided', async () => {
-        const res = await request(app).patch(`/admin/users/${validId2}`).send(null);
+        const res = await request(app).patch(`/api/v1/admin/users/${validId2}`).send(null);
 
         expect(res.status).toBe(400);
     });
 
     it('should return 400 bad request when invalid data is provided', async () => {
-        const res = await request(app).patch(`/admin/users/${validId}`)
+        const res = await request(app).patch(`/api/v1/admin/users/${validId}`)
             .send({ name: 'John Doe', email: 'john.doe@example.com', confirmed: 'true', role: 'user', password: 'trying to change it' });
 
         expect(res.status).toBe(400);
@@ -145,7 +145,7 @@ describe('PATCH /admin/users/:id', () => {
         existingUser._id = { toString: () => '507f1f77bcf86cd799439099' };
         User.findOne.mockResolvedValue(existingUser);
 
-        const res = await request(app).patch(`/admin/users/${validId}`)
+        const res = await request(app).patch(`/api/v1/admin/users/${validId}`)
             .send({ email: 'taken@example.com' });
 
         expect(res.status).toBe(400);
@@ -154,17 +154,17 @@ describe('PATCH /admin/users/:id', () => {
     it('should return 404 when user is not found', async () => {
         User.findByIdAndUpdate.mockResolvedValue(null);
 
-        const res = await request(app).patch(`/admin/users/${validId2}`).send({});
+        const res = await request(app).patch(`/api/v1/admin/users/${validId2}`).send({});
 
         expect(res.status).toBe(404);
     });
 });
 
-describe('DELETE /admin/users/:id', () => {
+describe('DELETE /api/v1/admin/users/:id', () => {
     it('should delete a user when id is provided', async () => {
         User.deleteOne.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
 
-        const res = await request(app).delete(`/admin/users/${validId}`);
+        const res = await request(app).delete(`/api/v1/admin/users/${validId}`);
 
         expect(res.status).toBe(200);
         expect(res.body).toEqual({ acknowledged: true, deletedCount: 1 });
@@ -173,21 +173,21 @@ describe('DELETE /admin/users/:id', () => {
     it('should return 404 when user to delete is not found', async () => {
         User.deleteOne.mockResolvedValue({ acknowledged: true, deletedCount: 0 });
 
-        const res = await request(app).delete(`/admin/users/${validId}`);
+        const res = await request(app).delete(`/api/v1/admin/users/${validId}`);
 
         expect(res.status).toBe(404);
     });
 
     it('should return 400 when admin tries to delete themselves', async () => {
-        const res = await request(app).delete(`/admin/users/${userAdmin._id}`);
+        const res = await request(app).delete(`/api/v1/admin/users/${userAdmin._id}`);
 
         expect(res.status).toBe(400);
     });
 });
 
-describe('PATCH /admin/users/:id - self-demotion guard', () => {
+describe('PATCH /api/v1/admin/users/:id - self-demotion guard', () => {
     it('should return 400 when admin tries to change their own role', async () => {
-        const res = await request(app).patch(`/admin/users/${userAdmin._id}`)
+        const res = await request(app).patch(`/api/v1/admin/users/${userAdmin._id}`)
             .send({ role: 'user' });
 
         expect(res.status).toBe(400);
@@ -197,7 +197,7 @@ describe('PATCH /admin/users/:id - self-demotion guard', () => {
         const updatedAdmin = new User({ name: 'Updated Admin', email: 'admin@new.com', confirmed: true, role: 'admin' });
         User.findByIdAndUpdate.mockResolvedValue(updatedAdmin);
 
-        const res = await request(app).patch(`/admin/users/${userAdmin._id}`)
+        const res = await request(app).patch(`/api/v1/admin/users/${userAdmin._id}`)
             .send({ name: 'Updated Admin' });
 
         expect(res.status).toBe(200);
