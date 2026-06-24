@@ -1,13 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("passport");
 
-const { isAdmin } = require("../utils/auth");
+const { isAdmin, jwtAuth } = require("../utils/auth");
+const { getUser } = require("../controllers/users");
 const middleware = require("../controllers/admin");
 
-const jwtAuth = () => passport.authenticate("jwt", { session: false });
-
-router.use(jwtAuth(), isAdmin);
+router.use(jwtAuth, isAdmin);
 
 /**
  * @openapi
@@ -108,7 +106,7 @@ router.route("/users").get(middleware.listUsers);
  */
 router
     .route("/users/:id")
-    .get(middleware.getUser)
+    .get(getUser)
     .patch(middleware.updateUser)
     .delete(middleware.deleteUser);
 

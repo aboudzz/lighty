@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("passport");
 
 const { authLimiter } = require("../utils/rateLimiters");
+const { jwtAuth } = require("../utils/auth");
 const middleware = require("../controllers/users");
-
-const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 /**
  * @openapi
@@ -90,6 +88,6 @@ router.get("/confirm", authLimiter, middleware.confirm);
  *       404:
  *         description: user not found
  */
-router.get("/:id", jwtAuth(), middleware.getUser);
+router.get("/:id", jwtAuth, middleware.getUser);
 
 module.exports = router;

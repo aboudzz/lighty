@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const passport = require("passport");
 
 const { authLimiter } = require("../utils/rateLimiters");
+const { jwtAuth } = require("../utils/auth");
 const middleware = require("../controllers/users");
-
-const jwtAuth = () => passport.authenticate("jwt", { session: false });
 
 /**
  * @openapi
@@ -107,6 +105,6 @@ router.post("/reset-password", authLimiter, middleware.resetPassword);
  *       401:
  *         description: unauthorized
  */
-router.post("/update-password", jwtAuth(), middleware.updatePassword);
+router.post("/update-password", jwtAuth, middleware.updatePassword);
 
 module.exports = router;

@@ -19,7 +19,7 @@ This is an Express 5 REST API with MongoDB (Mongoose) and JWT authentication (Pa
 
 **Request flow:** `routes/` → `controllers/` → `models/` / `services/`
 
-- **`routes/`** — Define endpoints and wire up Passport auth. Route handlers are thin; they delegate to controller functions. Routes are mounted under `/api/v1/` with deprecated legacy mounts at the root. Auth routes are in `routes/auth.js`.
+- **`routes/`** — Define endpoints and wire up Passport auth. Route handlers are thin; they delegate to controller functions. Routes are mounted under `/api/v1/`. Auth routes are in `routes/auth.js`.
 - **`controllers/`** — Contain the actual request-handling logic (validation, DB queries, response building). Express 5 handles async errors natively, so controllers do not use try/catch wrappers.
 - **`models/`** — Mongoose schemas. `User.js` also auto-creates an admin user on DB connection using config values.
 - **`services/`** — External integrations (email via nodemailer with EJS templates from `resources/emails/`, both text and HTML).

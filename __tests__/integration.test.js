@@ -223,18 +223,6 @@ describe('Integration Tests - User Workflows', () => {
             expect(response.status).toBe(404); // ping is not under api/v1
         });
 
-        it('should maintain backward compatibility with legacy routes', async () => {
-            User.findById.mockResolvedValue(testUser);
-
-            const jwt = require('jsonwebtoken');
-            const token = jwt.sign({ sub: testUser._id }, process.env.JWT_SECRET || 'test-jwt-secret-for-testing-only-min-32-chars');
-
-            const response = await request(app)
-                .get('/users/507f1f77bcf86cd799439011')
-                .set('Authorization', `Bearer ${token}`);
-            expect(response.status).toBe(200);
-        });
-
         it('should work with new versioned routes', async () => {
             User.findById.mockResolvedValue(testUser);
 
